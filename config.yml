@@ -1,0 +1,21 @@
+anticaptcha:
+    links:
+      link_recaptcha_ssw: 'https://sistema.ssw.inf.br/bin/ssw0846'
+variables:
+    bot_019:
+      list_units: ['SJO', 'SMA', 'SMD', 'SMS', 'SOD', 'SP2', 'SP3', 'SPR', 'STZ', 'TLB', 'TNG', 'TO1', 'TO2', 'TO3', 'TOL', 'TUB', 'UDI', 'USE', 'UMU', 'UVT', 'VAC', 'VAL', 'VCT', 'VIC', 'XAP', 'STA']
+    bot_056:
+      number_reports: ['020', '023']
+    bot_076:
+      list_units: ['ANJ', 'RIC', 'COM', 'VAL', 'LCT', 'FEC', 'FRT', 'IFL', 'LAC', 'LCR', 'MRL', 'SCI', 'DEV', 'ANP', 'CWI', 'MRG', 'GYN', 'CWB', 'VIX', 'BSB', 'ITJ', 'RSI', 'POA', 'PEG', 'LDA', 'MGF', 'RPR', 'CAC', 'SFT', 'SPG', 'TRC', 'TSC', 'EVV', 'FEL', 'TXL', 'VLT', 'ZLT']
+    bot_081:
+      list_units: ['FEC', 'FRT', 'CAI', 'FOR', 'JPA', 'MOS', 'NAT', 'REC', 'SAV', 'SPO', 'MTZ']
+    bot_103:
+      path_download_103: 'downloads/103'
+      columns_103: ['1', 'UNIDADE', 'NUMERO_COLETA', 'DATA_INCLUSAO', 'HORA_INCLUSAO', 'USUARIO', 'SOLICITANTE','REMETENTE', 'CNPJ_REMETENTE', 'ENDERECO_REMETENTE', 'BAIRRO_REMETENTE', 'CIDADE_REMETENTE', 'UF_REMETENTE', 'SETOR', 'CEP_REMETENTE', 'NOTAS_FISCAIS', 'PEDIDO', 'CTRC', 'DESTINATARIO', 'CNPJ_DESTINATARIO', 'CIDADE_DESTINO', 'UF_DESTINO', 'PAGADOR', 'CNPJ_PAGADOR', 'PESO_CALCULO(KG)', 'PESO_REAL(KG)', 'M3', 'QUANT_VOL', 'VALOR_MERCADORIA','COLETAR_DATA', 'COLETAR_HORA', 'COLETADO_DATA', 'COLETADO_HORA', 'SITUACAO','INSTRUCAO_SITUACAO', 'PLACA_CAVALO', 'PLACA_CARRETA', 'CPF_MOTORISTA', 'MOTORISTA', 'DATA_ULTIMA_OCORRENCIA', 'HORA_ULTIMA_OCORRENCIA', 'USUARIO_ULTIMA_OCORRENCIA','ULTIMA_OCORRENCIA', 'OBSERVACAO_1', 'OBSERVACAO_2', 'OBSERVACAO_3', 'DOC COLETA' ]
+    bot_441:
+      path_download_441: 'downloads/441'
+      columns_441: ['1', 'FATURA', 'CNPJ/CPF', 'CLIENTE', 'ABC', 'VENDEDOR', 'ULTIMO MOVIMENTO', 'DDD', 'TELEFONE', 'E-MAIL COBRANCA', 'TIPO DE COBRANCA', 'BANCO/CARTEIRA', 'AGENCIA/CONTA', 'ENDERECO', 'BAIRRO', 'CEP', 'UF', 'CIDADE', 'FIL', 'EMPRESA', 'EMISSAO', 'VENC ORI', 'VENCIMEN', 'CANCELAM', 'DATA PROMESSA', 'PAGAMENTO', 'DATA CREDITO CAIXA', 'VALOR CREDITO CAIXA', 'DIAS ATRASO', 'LIQUIDADA/ATRASADA', 'PROTESTADA/CARTORIO', 'SERASA', 'PRORROGADA', 'VLR CTRCS', 'VLR DEBITO', 'VLR CREDITO', 'MOTIVO_DEBITO/CREDITO', 'VLR FATUR', 'JURPREV', 'MULTAPREV', 'JUROS', 'DESCONTO', 'PGTO PARCIAL', 'VLR PAGO', 'SALDO', 'TIPO BAIXA', 'NRO TIT BCO', 'LOGIN EMIT', 'ULTIMA OCORRENCIA', 'UNIDADE RESPONSAVEL', 'PRE-FATURA (EDI)', 'DATA PERDA', 'Unnamed: 52']
+    bot_455CGK:
+      path_download_455CGK: 'downloads/455CGK'
+      columns_455CGK: ['Serie/Numero CTRC', 'Data de Autorizacao', 'Numero da Capa de Remessa', 'Numero do Pacote de Arquivamento', 'Compr. de Entrega Escaneado', 'Data do Escaneamento', 'Hora do Escaneamento', 'Result Com FRETE', 'Result Com DESPESAS', 'Result Com SEGURO', 'Result Com ICMS', 'Result Com PIS/COFINS', 'Result Com GRIS', 'Result Com PEDAGIO', 'Result Com EXPEDICAO', 'Result Com TRANFERENCIA', 'Result Com TRANSBORDO', 'Result Com VENDEDOR', 'Result Com RECEPCAO', 'Result Com DESPESAS DIV', 'Result Com R$', 'Result Com %', 'Resultado Minimo %', 'Resultado Real PEDAGIO', 'Resultado Real TRANFERENCIA', 'Resultado Real R$', 'Resultado Real %', 'Observacao', 'Distancia em Km', 'Conferente de Coleta', 'Complemento']

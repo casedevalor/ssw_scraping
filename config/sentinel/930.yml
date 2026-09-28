@@ -1,0 +1,39 @@
+# Column baseline for SSW routine 930 (one file per day).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 930 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded (screen-156 path, checked by downloads.py).
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '930'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '0'                    # first column header as SSW delivers it ('0', not the usual '1')
+  2: 'CTRC'
+  3: 'EMISSAO_CTRC'
+  4: 'SERIE_CTE'
+  5: 'NRO_CTE'
+  6: 'SERIE_NOTA_FISCAL'
+  7: 'NRO_NOTA_FISCAL'
+  8: 'PEDIDO'
+  9: 'EMPR_OCOR'
+  10: 'UNID_OCOR'
+  11: 'DIA_INCLUSAO_OCOR'
+  12: 'HORA_INCLUSAO_OCOR'
+  13: 'DATA_OCOR'
+  14: 'HORA_OCOR'
+  15: 'USUARIO_OCOR'
+  16: 'COD_OCOR'
+  17: 'DESCRICAO_OCOR'
+  18: 'COMPLEMENTO_OCOR'
+  19: 'DATA_ENTREGA'
+  20: 'DESCR_ITEM'
+  21: 'PRIMEIRO_MANIFESTO'
+  22: 'CANCELADO'
+  23: 'CNPJ_PAGADOR'
+  24: 'NOME_PAGADOR'

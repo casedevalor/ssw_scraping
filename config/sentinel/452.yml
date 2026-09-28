@@ -1,0 +1,42 @@
+# Column baseline for SSW routine 452.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the file AFTER processing (Dataframe_Analytics.processing_csv_452),
+# which only drops the SSW title lines and keeps every original column — so
+# this is a real check of the SSW layout. The last column is the empty one
+# from SSW's trailing ';', named 'Unnamed: 22' by pandas and written as a
+# header by the processing. If SSW adds a column, that name shifts too
+# (e.g. 'Unnamed: 23'), which shows up next to the ADDED column.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '452'
+header_line: 1          # processing rewrites the file with the header on line 1
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '1'                    # SSW row counter
+  2: 'unid_liquid'
+  3: 'banco'
+  4: 'ag'
+  5: 'c_corrente'
+  6: 'ctrc_fatura'
+  7: 'cte'
+  8: 'cnp_cpf'
+  9: 'nome_pagador'
+  10: 'cidade'
+  11: 'uf'
+  12: 'cheque_dinh'
+  13: 'nro_cheque'
+  14: 'valor_frete_fatura'
+  15: 'deb_juros'
+  16: 'cred_desconto'
+  17: 'valor'
+  18: 'liquidacao'
+  19: 'terceiro'
+  20: 'login_liquidou'
+  21: 'debito_credito'
+  22: 'observacao'
+  23: 'Unnamed: 22'         # SSW trailing ';' column, named by pandas

@@ -1,0 +1,27 @@
+# Column baseline for SSW routine 324.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the .xlsx produced by Dataframe_Analytics.processing_sswweb_324.
+#
+# DORMANT today: SSW delivers a .sswweb text report; processing_sswweb_324 parses it
+# with a regex and writes an .xlsx whose 7 column names are hard-coded in that
+# function — so the header never changes.
+# The check runs and logs OK, but it cannot catch an SSW change while the
+# processing works this way. It is kept ready for when the processing stops hard-coding
+# the column names.
+#
+# To accept a legitimate change, update this file — never the code.
+routine: '324'
+header_line: 1          # pandas writes the header on the first row
+# .xlsx output: delimiter/encoding don't apply (first sheet is read)
+columns:
+  1: 'Placa'
+  2: 'Emissão'
+  3: 'Documento'
+  4: 'Fornecedor'
+  5: 'Histórico'
+  6: 'Receitas (R$)'
+  7: 'Despesas (R$)'

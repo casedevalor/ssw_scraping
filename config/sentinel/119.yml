@@ -1,0 +1,27 @@
+# Column baseline for SSW routine 119.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the .xlsx produced by Dataframe_Analytics.processing_sswweb_119.
+#
+# DORMANT today: SSW delivers a .sswweb text report; processing_sswweb_119 slices
+# each line by fixed character positions and writes an .xlsx whose 7 column
+# names are hard-coded in that function — so the header never changes.
+# The check runs and logs OK, but it cannot catch an SSW change while the
+# processing works this way. It is kept ready for when the processing stops hard-coding
+# the column names.
+#
+# To accept a legitimate change, update this file — never the code.
+routine: '119'
+header_line: 1          # pandas writes the header on the first row
+# .xlsx output: delimiter/encoding don't apply (first sheet is read)
+columns:
+  1: 'VENDEDOR'
+  2: 'CNPJ'
+  3: 'CLIENTE'
+  4: 'DIA'
+  5: 'TIPO'
+  6: 'ACOES_VENDA'
+  7: 'RELATORIO'

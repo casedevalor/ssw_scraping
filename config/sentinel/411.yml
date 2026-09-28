@@ -1,0 +1,43 @@
+# Column baseline for SSW routine 411.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 411 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '411'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'CTRC'
+  2: 'Numero CT-e'
+  3: 'Numero do formulario'
+  4: 'Data Emissao'
+  5: 'Tipo'
+  6: 'CNPJ Remetente'
+  7: 'Nome Remetente'
+  8: 'CNPJ Destinatario'
+  9: 'Nome Destinatario'
+  10: 'CNPJ Pagador'
+  11: 'Nome Pagador'
+  12: 'UF'
+  13: 'Cidade'
+  14: 'Vlr Frete'
+  15: 'Vlr Juro'
+  16: 'Vlr Desconto'
+  17: 'Valor Liqu'
+  18: 'Data Liquid'
+  19: 'Unidade Liqui'
+  20: 'Forma Liqu'
+  21: 'Banco Ag. Conta'
+  22: 'Fatura'
+  23: 'Data Credito Caixa'
+  24: 'Vendedor'
+  25: 'Cidade Destino'
+  26: 'UF Destino'
+  27: 'Login'
+  28: 'Cod Mercadoria'

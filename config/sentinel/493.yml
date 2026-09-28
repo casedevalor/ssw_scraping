@@ -1,0 +1,66 @@
+# Column baseline for SSW routine 493.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 493 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded (screen-156 path, checked by downloads.py). The empty
+# 50th column from SSW's trailing ';' is ignored, so it is not listed.
+# 'CPNJ_REMETENTE' is SSW's own spelling — keep it.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '493'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '0'                    # first column header as SSW delivers it ('0', not the usual '1')
+  2: 'CNPJ_PAGADOR'
+  3: 'NOME_PAGADOR'
+  4: 'ENDERECO'
+  5: 'BAIRRO'
+  6: 'CIDADE/UF'
+  7: 'FONE'
+  8: 'ABC'
+  9: 'CLASSIFICACAO'
+  10: 'VENDEDOR'
+  11: 'ULT MOV'
+  12: 'UNIDADE RESP'
+  13: 'TIPO DE TABELA'
+  14: 'COD TABELA'
+  15: 'ORIGEM'
+  16: 'DESTINO'
+  17: 'CPNJ_REMETENTE'
+  18: 'NOME_REMETENTE'
+  19: 'CNPJ_DESTINATARIO'
+  20: 'NOME_DESTINATARIO'
+  21: 'IDA/VOLTA'
+  22: 'KG/M3'
+  23: 'MERCADORIA'
+  24: 'DIR'
+  25: 'SIM'
+  26: 'EXC'
+  27: 'OBSERVACAO'
+  28: 'COL'
+  29: 'ENT'
+  30: 'TDC'
+  31: 'TDE'
+  32: 'TAR'
+  33: 'TRT'
+  34: 'PED'
+  35: 'DES'
+  36: 'ITR'
+  37: 'TAS'
+  38: 'CAT'
+  39: 'GRI'
+  40: 'POS'
+  41: 'ADV'
+  42: 'ADF'
+  43: 'FPE'
+  44: 'MIN'
+  45: 'LOGIN INC'
+  46: 'ATIVACAO'
+  47: 'APROVACAO'
+  48: 'VENCIMENTO'
+  49: 'INATIVACAO'

@@ -1,0 +1,30 @@
+# Column baseline for SSW routine 306 (one file per fortnight: -1 / -2).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 306 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded — direct download, after-prompt download and the
+# screen-156 path.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '306'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'PLACA'
+  2: 'CTRC/COLETA'
+  3: 'DATA'
+  4: 'MOTORISTA'
+  5: 'REMETENTE'
+  6: 'UF/CIDADE ORIGEM'
+  7: 'SETOR ORIGEM'
+  8: 'DESTINATARIO'
+  9: 'UF/CIDADE DESTINO'
+  10: 'UNIDADE DESTINO'
+  11: 'SETOR DESTINO'
+  12: 'DATA PREVISAO ENTREGA'
+  13: 'OCORRENCIA MOBILE'
+  14: 'OCORRENCIA ATUAL'

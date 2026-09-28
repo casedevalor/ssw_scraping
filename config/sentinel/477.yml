@@ -1,0 +1,60 @@
+# Column baseline for SSW routine 477.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 477 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded — direct download (bot_477.py) and screen-156 path
+# (downloads.py). The empty 44th column from SSW's trailing ';' is ignored,
+# so it is not listed.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '477'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '3'                    # first column header as SSW delivers it ('3', not the usual '1')
+  2: 'EMPRESA'
+  3: 'NUMLANCTO'
+  4: 'PARCELA'
+  5: 'EVENTO'
+  6: 'DESCR EVENTO'
+  7: 'HISTORICO DA DESPESA'
+  8: 'CNPJ FORNECEDOR'
+  9: 'NOME FORNECEDOR'
+  10: 'CHAVE PIX FORNECEDOR'
+  11: 'MUNICIPIO FORNECEDOR'
+  12: 'UF FORNECEDOR'
+  13: 'BCO/AGENCIA/CONTA FORNECEDOR'
+  14: 'CNPJ FAVORECIDO'
+  15: 'NOME FAVORECIDO'
+  16: 'ESPECIALIDADE'
+  17: 'RNTRC'
+  18: 'CTA CTB DEB'
+  19: 'CTA CTB CRED'
+  20: 'NFISCAL'
+  21: 'CHAVE NFISCAL'
+  22: 'VALOR TOTAL PRODUTOS'
+  23: 'VLR NOTA'
+  24: 'VLR PARCELA'
+  25: 'JUROS'
+  26: 'DESCONTOS'
+  27: 'VLR FINAL'
+  28: 'INCLUSAO'
+  29: 'LOGIN'
+  30: 'VENCIMEN'
+  31: 'EMISSAO'
+  32: 'DATA PGTO'
+  33: 'APROVACAO'
+  34: 'CONTABIL'
+  35: 'UNI'
+  36: 'SIT DES'
+  37: 'ARQ REMESSA'
+  38: 'ARQ'
+  39: 'CRED PIS/COFINS'
+  40: 'COD BAR BLOQUETO'
+  41: 'CFOP'
+  42: 'GRUPO EVENTO'
+  43: 'MES COMPETENCIA'

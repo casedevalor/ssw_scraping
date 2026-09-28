@@ -1,0 +1,45 @@
+# Column baseline for SSW routine 019 (one file per unit).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 019 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded — both the direct download and the screen-156 path.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '019'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'DESTINO'
+  2: 'CTRC/GAI/PAL'
+  3: 'T'
+  4: 'AUTORIZACAO'
+  5: 'PREV DE ENTREGA'
+  6: 'NFISCAL'
+  7: 'PEDIDO'
+  8: 'SUBC'
+  9: 'REMETENTE'
+  10: 'PAGADOR'
+  11: 'ABC'
+  12: 'DESTINATARIO'
+  13: 'CIDADE'
+  14: 'UF'
+  15: 'SET'
+  16: 'MERCADORIA'
+  17: 'FRETE'
+  18: 'KgREA'
+  19: 'M3'
+  20: 'PESO CALCULO'
+  21: 'SSWBAR'
+  22: 'QVOL'
+  23: 'COD ULT OCOR'
+  24: 'DESC ULT OCOR'
+  25: 'DATA ULT OCOR'
+  26: 'PREVCHEGADA'
+  27: 'MANIFESTO/END'
+  28: 'CHAVE DACTE'
+  29: 'COMISSAO RECEPCAO'
+  30: 'TROCA GELO'

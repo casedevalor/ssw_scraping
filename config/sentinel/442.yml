@@ -1,0 +1,30 @@
+# Column baseline for SSW routine 442.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 442 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded. 'UNID PAGAGDOR' is SSW's own spelling — keep it.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '442'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '1'                    # SSW row counter
+  2: 'UNID EMIT'
+  3: 'CT-E/FATURA ORI'
+  4: 'CT-E/FATURA DES'
+  5: 'USUARIO EMIT'
+  6: 'DATA EMISSAO'
+  7: 'CNPJ PAGADOR'
+  8: 'RAZAO SOCIAL PAGADOR'
+  9: 'UNID PAGAGDOR'
+  10: 'VALOR FRETE/FATURA'
+  11: 'VALOR DO CREDITO'
+  12: 'VALOR DO DEBITO'
+  13: 'DESCRICAO'
+  14: 'DATA INCLUSAO'
+  15: 'USUARIO CRE/DEB'

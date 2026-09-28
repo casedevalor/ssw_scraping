@@ -1,0 +1,30 @@
+# Column baseline for SSW routine 458.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the .xlsx the bot builds itself: SSW offers no file here, so
+# bot_458.py scrapes the detail table (cell by cell, by position) and writes
+# it with pandas.
+#
+# DORMANT today: the 9 column names come from DETAIL_COLUMNS, hard-coded in
+# bot_458.py, and cells are mapped to them by position — so the header never
+# changes, whatever SSW does. The check runs and logs OK, but it cannot catch
+# an SSW change while the routine works this way. It is kept ready for when
+# the header is read from the SSW table instead of hard-coded.
+#
+# To accept a legitimate change, update this file — never the code.
+routine: '458'
+header_line: 1          # pandas writes the header on the first row
+# .xlsx output: delimiter/encoding don't apply (first sheet is read)
+columns:
+  1: 'Empresa'
+  2: 'Banco'
+  3: 'Agencia'
+  4: 'ContaCorrente'
+  5: 'Tipo'
+  6: 'Entradas'
+  7: 'Saidas'
+  8: 'Saldo'
+  9: 'Status'

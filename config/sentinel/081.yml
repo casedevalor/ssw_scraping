@@ -1,0 +1,62 @@
+# Column baseline for SSW routine 081 (one file per unit).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 081 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '081'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'SETOR'
+  2: 'ROMANEIO'
+  3: 'CTRC'
+  4: 'PRIORITARIO'
+  5: 'ABC'
+  6: 'SUBC'
+  7: 'REMETENTE'
+  8: 'PAGADOR'
+  9: 'DESTINATARIO'
+  10: 'ENDERECO'
+  11: 'CIDADE'
+  12: 'BAIRRO'
+  13: 'CEP'
+  14: 'DATA PREVISTA'
+  15: 'AGENDAMENTO'
+  16: 'NFISCAL'
+  17: 'VALOR MERCADORIA'
+  18: 'KG REAL'
+  19: 'M3'
+  20: 'PESO CALCULO'
+  21: 'QUANTIDADE VOLUMES'
+  22: 'SSWBAR'
+  23: 'VALOR FRETE'
+  24: 'ULT. OCORRENCIA'
+  25: 'DESCRICAO ULT. OCORRENCIA'
+  26: 'DATA ULT. OCORRENCIA'
+  27: 'BLOQ'
+  28: 'PREV CHEGADA'
+  29: 'MANIFESTO/END'
+  30: 'LEMBRETE/INSTRUCAO ENTREGA'
+  31: 'CNPJ DESTINATARIO'
+  32: 'CNPJ RECEBEDOR'
+  33: 'NOME RECEBEDOR'
+  34: 'LOGRADOURO RECEBEDOR'
+  35: 'NUMERO RECEBEDOR'
+  36: 'COMPLEMENTO RECEBEDOR'
+  37: 'BAIRRO RECEBEDOR'
+  38: 'CIDADE RECEBEDOR'
+  39: 'CEP RECEBEDOR'
+  40: 'UF RECEBEDOR'
+  41: 'COD BARRAS'
+  42: 'COMISSAO RECEPCAO'
+  43: 'TROCA GELO'
+  44: 'TIPO MERCADORIA'
+  45: 'CHAVE NF-E'
+  46: 'NR1-NR2'
+  47: 'PEDIDO'

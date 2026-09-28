@@ -1,0 +1,64 @@
+# Column baseline for SSW routine 103.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the file AFTER processing (Dataframe_Analytics.processing_csv_103),
+# which keeps only config.yml -> variables.bot_103.columns_103, in that order.
+# This list must stay identical to columns_103: changing one means changing
+# the other.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '103'
+header_line: 1          # processing rewrites the file with the header on line 1
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '1'                    # SSW row counter
+  2: 'UNIDADE'
+  3: 'NUMERO_COLETA'
+  4: 'DATA_INCLUSAO'
+  5: 'HORA_INCLUSAO'
+  6: 'USUARIO'
+  7: 'SOLICITANTE'
+  8: 'REMETENTE'
+  9: 'CNPJ_REMETENTE'
+  10: 'ENDERECO_REMETENTE'
+  11: 'BAIRRO_REMETENTE'
+  12: 'CIDADE_REMETENTE'
+  13: 'UF_REMETENTE'
+  14: 'SETOR'
+  15: 'CEP_REMETENTE'
+  16: 'NOTAS_FISCAIS'
+  17: 'PEDIDO'
+  18: 'CTRC'
+  19: 'DESTINATARIO'
+  20: 'CNPJ_DESTINATARIO'
+  21: 'CIDADE_DESTINO'
+  22: 'UF_DESTINO'
+  23: 'PAGADOR'
+  24: 'CNPJ_PAGADOR'
+  25: 'PESO_CALCULO(KG)'
+  26: 'PESO_REAL(KG)'
+  27: 'M3'
+  28: 'QUANT_VOL'
+  29: 'VALOR_MERCADORIA'
+  30: 'COLETAR_DATA'
+  31: 'COLETAR_HORA'
+  32: 'COLETADO_DATA'
+  33: 'COLETADO_HORA'
+  34: 'SITUACAO'
+  35: 'INSTRUCAO_SITUACAO'
+  36: 'PLACA_CAVALO'
+  37: 'PLACA_CARRETA'
+  38: 'CPF_MOTORISTA'
+  39: 'MOTORISTA'
+  40: 'DATA_ULTIMA_OCORRENCIA'
+  41: 'HORA_ULTIMA_OCORRENCIA'
+  42: 'USUARIO_ULTIMA_OCORRENCIA'
+  43: 'ULTIMA_OCORRENCIA'
+  44: 'OBSERVACAO_1'
+  45: 'OBSERVACAO_2'
+  46: 'OBSERVACAO_3'
+  47: 'DOC COLETA'

@@ -1,0 +1,56 @@
+# Column baseline for SSW routine 002.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 002 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded. Leading/trailing spaces in names are ignored, and the
+# empty last column (SSW's trailing ';') is not counted.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '002'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'COTACAO'
+  2: 'UNIDADE INCLUSAO'
+  3: 'USUARIO INCLUSAO'
+  4: 'CNPJ PAGADOR'
+  5: 'NOME PAGADOR'
+  6: 'ABC'
+  7: 'VENDEDOR'
+  8: 'ORIGEM'
+  9: 'PRACA COLETA'
+  10: 'PRACA COMERCIAL'
+  11: 'DESTINO'
+  12: 'CNPJ DESTINATARIO'
+  13: 'NOME DESTINATARIO'
+  14: 'ED'
+  15: 'TIPO FRETE'
+  16: 'MERCADORIA'
+  17: 'VALOR NF'
+  18: 'QTD VOLUMES'
+  19: 'QTD PARES'
+  20: 'PESO'
+  21: 'CUBAGEM'
+  22: 'PESO CALCULO'
+  23: 'FRETE NTC'
+  24: 'PROPOSTA INICIAL'
+  25: 'PROPOSTA ATUAL'
+  26: 'DESC NTC '
+  27: 'RC '
+  28: 'DESC INICIAL '
+  29: 'TABELA DE CALCULO '
+  30: 'DATA HORA INCLUSAO'
+  31: 'VALIDADE'
+  32: 'SITUACAO'
+  33: 'CTRC'
+  34: 'DATA EMISSAO CTRC'
+  35: 'FRETE CTRC'
+  36: 'RELATORIO COMISSAO'
+  37: 'UNIDADE RESPONSAVEL'
+  38: 'USUARIO ALTERACAO'
+  39: 'CONTATO'
+  40: 'AUTORIZADO'

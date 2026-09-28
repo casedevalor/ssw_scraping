@@ -1,0 +1,55 @@
+# Column baseline for SSW routine 435 (CSV option only).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 435 has no processing step: this is the raw SSW csv (option "S"),
+# exactly as it is uploaded. The TXT option ("N") is a text report with no
+# column header and is not checked.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '435'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'EM'
+  2: 'CTRC'
+  3: 'NUMERO CT-e/NFPS'
+  4: 'PAGADOR'
+  5: 'CNPJ PAGADOR'
+  6: 'COB'
+  7: 'DEST'
+  8: 'BANCO'
+  9: 'FRETE'
+  10: 'EMISSAO'
+  11: 'CANHOT'
+  12: 'NFISCAL'
+  13: 'ICMS'
+  14: 'MER'
+  15: 'TIP'
+  16: 'PRE-FATU'
+  17: 'CTRC ORIGEM'
+  18: 'CAPA REMESSA'
+  19: 'NRO PACOTE'
+  20: 'NRO PEDIDO'
+  21: 'TIPO DOC'
+  22: 'ULT. OCOR'
+  23: 'ULT MVTO CLIENTE'
+  24: 'CHAVE CTE'
+  25: 'DATA ENTREGA'
+  26: 'CNPJ REMETENTE'
+  27: 'REMETENTE'
+  28: 'CIDADE DO REMETENTE'
+  29: 'UF DO REMETENTE'
+  30: 'CIDADE DO PAGADOR'
+  31: 'UF DO PAGADOR'
+  32: 'CNPJ DESTINATARIO'
+  33: 'DESTINATARIO'
+  34: 'CIDADE DO DESTINATARIO'
+  35: 'UF DO DESTINATARIO'
+  36: 'PREVISAO DE ENTREGA'
+  37: 'COMPROVANTE DE ENTREGA ESCANEADO'
+  38: 'OBSERVACAO'
+  39: 'DEMAIS NOTAS'

@@ -1,0 +1,46 @@
+# Column baseline for SSW routine 455 (variant 455CGK).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the file AFTER processing (Dataframe_Analytics), i.e. the
+# layout Power BI expects — known SSW renames are handled there, not here.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '455CGK'
+header_line: 1          # processing drops the SSW metadata line, so the header is line 1
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'Serie/Numero CTRC'
+  2: 'Data de Autorizacao'
+  3: 'Numero da Capa de Remessa'
+  4: 'Numero do Pacote de Arquivamento'
+  5: 'Compr. de Entrega Escaneado'
+  6: 'Data do Escaneamento'
+  7: 'Hora do Escaneamento'
+  8: 'Result Com FRETE'
+  9: 'Result Com DESPESAS'
+  10: 'Result Com SEGURO'
+  11: 'Result Com ICMS'
+  12: 'Result Com PIS/COFINS'
+  13: 'Result Com GRIS'
+  14: 'Result Com PEDAGIO'
+  15: 'Result Com EXPEDICAO'
+  16: 'Result Com TRANFERENCIA'
+  17: 'Result Com TRANSBORDO'
+  18: 'Result Com VENDEDOR'
+  19: 'Result Com RECEPCAO'
+  20: 'Result Com DESPESAS DIV'
+  21: 'Result Com R$'
+  22: 'Result Com %'
+  23: 'Resultado Minimo %'
+  24: 'Resultado Real PEDAGIO'
+  25: 'Resultado Real TRANFERENCIA'
+  26: 'Resultado Real R$'
+  27: 'Resultado Real %'
+  28: 'Observacao'
+  29: 'Distancia em Km'
+  30: 'Conferente de Coleta'
+  31: 'Complemento'

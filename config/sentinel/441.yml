@@ -1,0 +1,74 @@
+# Column baseline for SSW routine 441.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# It describes the file AFTER processing (Dataframe_Analytics.processing_csv_441).
+#
+# DORMANT today: processing_csv_441 renames 'Unnamed: 53', fills any missing column
+# with blanks and keeps only config.yml -> variables.bot_441.columns_441, in
+# that order — so the processed header always equals that list.
+# The check runs and logs OK, but it cannot catch an SSW change while the
+# processing works this way. It is kept ready for when the fixed column list is replaced by
+# another method. Keep it identical to columns_441 meanwhile.
+#
+# To accept a legitimate change, update this file — never the code.
+routine: '441'
+header_line: 1          # processing rewrites the file with the header on line 1
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '1'                    # SSW row counter
+  2: 'FATURA'
+  3: 'CNPJ/CPF'
+  4: 'CLIENTE'
+  5: 'ABC'
+  6: 'VENDEDOR'
+  7: 'ULTIMO MOVIMENTO'
+  8: 'DDD'
+  9: 'TELEFONE'
+  10: 'E-MAIL COBRANCA'
+  11: 'TIPO DE COBRANCA'
+  12: 'BANCO/CARTEIRA'
+  13: 'AGENCIA/CONTA'
+  14: 'ENDERECO'
+  15: 'BAIRRO'
+  16: 'CEP'
+  17: 'UF'
+  18: 'CIDADE'
+  19: 'FIL'
+  20: 'EMPRESA'
+  21: 'EMISSAO'
+  22: 'VENC ORI'
+  23: 'VENCIMEN'
+  24: 'CANCELAM'
+  25: 'DATA PROMESSA'
+  26: 'PAGAMENTO'
+  27: 'DATA CREDITO CAIXA'
+  28: 'VALOR CREDITO CAIXA'
+  29: 'DIAS ATRASO'
+  30: 'LIQUIDADA/ATRASADA'
+  31: 'PROTESTADA/CARTORIO'
+  32: 'SERASA'
+  33: 'PRORROGADA'
+  34: 'VLR CTRCS'
+  35: 'VLR DEBITO'
+  36: 'VLR CREDITO'
+  37: 'MOTIVO_DEBITO/CREDITO'
+  38: 'VLR FATUR'
+  39: 'JURPREV'
+  40: 'MULTAPREV'
+  41: 'JUROS'
+  42: 'DESCONTO'
+  43: 'PGTO PARCIAL'
+  44: 'VLR PAGO'
+  45: 'SALDO'
+  46: 'TIPO BAIXA'
+  47: 'NRO TIT BCO'
+  48: 'LOGIN EMIT'
+  49: 'ULTIMA OCORRENCIA'
+  50: 'UNIDADE RESPONSAVEL'
+  51: 'PRE-FATURA (EDI)'
+  52: 'DATA PERDA'
+  53: 'Unnamed: 52'         # SSW trailing ';' column, named by pandas; kept by processing

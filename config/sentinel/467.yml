@@ -1,0 +1,117 @@
+# Column baseline for SSW routine 467.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 467 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded (screen-156 path, checked by downloads.py).
+# SSW prefixes columns 20-27 with a space (' VERIFICA CIF/FOB', ...); the
+# sentinel ignores leading/trailing spaces, so they are listed without it.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '467'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'CFOP'
+  2: 'CLIENTE'
+  3: 'CNPJ/CPF'
+  4: 'CURVA ABC'
+  5: 'VENDEDOR'
+  6: 'ENDERECO'
+  7: 'NUMERO'
+  8: 'COMPLEMENTO'
+  9: 'BAIRRO'
+  10: 'CEP'
+  11: 'SETOR'
+  12: 'FONE'
+  13: 'CELULAR'
+  14: 'CIDADE'
+  15: 'UF'
+  16: 'LATITUDE'
+  17: 'LONGITUDE'
+  18: 'INCLUSAO'
+  19: 'CLASSIFICACAO'
+  20: 'VERIFICA CIF/FOB'              # SSW sends it with a leading space
+  21: 'PAGA TDA'                      # SSW sends it with a leading space
+  22: 'SEG RCFDC'                     # SSW sends it with a leading space
+  23: 'VCTO RCFDC'                    # SSW sends it with a leading space
+  24: 'SEG RCTRC'                     # SSW sends it with a leading space
+  25: 'VCTO RCTRC'                    # SSW sends it with a leading space
+  26: 'DEV CANHOTO NF'                # SSW sends it with a leading space
+  27: 'USA LOGISTICA'                 # SSW sends it with a leading space
+  28: 'INSCR'
+  29: 'SN'
+  30: 'ENDERECO COBRANCA'
+  31: 'NUMERO COBRANCA'
+  32: 'COMPLEMENTO COBRANCA'
+  33: 'BAIRRO COBRANCA'
+  34: 'CEP COBRANCA'
+  35: 'CIDADE COBRANCA'
+  36: 'UF COBRANCA'
+  37: 'UNID COBR'
+  38: 'BCO COBR'
+  39: 'AGENCIA'
+  40: 'CC'
+  41: 'CARTEIRA'
+  42: 'EMAIL COBRANCA'
+  43: 'PERIODICIDADE'
+  44: 'UNID RESP'
+  45: 'PRAZO VECIM FATURA'
+  46: 'ULT MOVIMENTO'
+  47: 'TRANSPORTAR'
+  48: 'INCLUIDO POR'
+  49: 'ALTERADO DADOS BASICOS POR'
+  50: 'ALTERADO DEMAIS DADOS POR'
+  51: 'EMAIL DE ENVIO DO CT-e E XML'
+  52: 'CUBAGEM'
+  53: 'ENTREGA DIFICIL'
+  54: 'CNAE'
+  55: 'SEGMENTO'
+  56: 'ENVIA FATURA'
+  57: 'ENVIA AVISO ATRASO'
+  58: 'ENVIO POR CORREIO'
+  59: 'VENCIM DIAS SEMANA'
+  60: 'VENCIM DIAS MES'
+  61: 'PROTESTAR'
+  62: 'PEFIN/SERASA'
+  63: 'COBRAR TARIFA BANCO'
+  64: 'COBRAR RETORNO BANCO'
+  65: 'AGENDAMENTO OBRIGATORIO'
+  66: 'COLETA DIFICIL'
+  67: 'FAX/0800'
+  68: 'SITE'
+  69: 'GRAU ENTREGA DIFICIL'
+  70: 'PAGA TDE'
+  71: 'PRACA DA TABELA'
+  72: 'ICMS/ISS NA TABELA'
+  73: 'PODE AGRUPAR NFS'
+  74: 'EXIGE PEDIDO NO CTRC'
+  75: 'EMAIL'
+  76: 'ACESSO DIFICIL'
+  77: 'CEP COLETA'
+  78: 'ENDERECO COLETA'
+  79: 'NUMERO COLETA'
+  80: 'COMPLEMENTO COLETA'
+  81: 'BAIRRO COLETA'
+  82: 'CNPJ EXPEDIDOR'
+  83: 'PIS/COFINS NA TABELA'
+  84: 'FATURISTA'
+  85: 'ENVIA AVISO VENCIMENTO'
+  86: 'ATENDENTE RESP'
+  87: 'SENHA RASTREAMENTO'
+  88: 'SENHA RASTREAMENTO OBRIGATORIA'
+  89: 'TIPO COBRANCA'
+  90: 'UNIDADE COLETA'
+  91: 'SETOR COLETA'
+  92: 'UNIDADE DESTINO'
+  93: 'SETOR DESTINO'
+  94: 'UNIDADE DESTINO COMO REMETENTE'
+  95: 'UNIDADE DESTINO COMO PAGADOR'
+  96: 'TRANSFERENCIA APOS HHMM'
+  97: 'TRANSFERENCIA ADICIONAR DIAS'
+  98: 'TIPO FATURAMENTO'
+  99: 'CONDICAO FATURAMENTO CIF'
+  100: 'CONDICAO FATURAMENTO FOB'

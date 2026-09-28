@@ -1,0 +1,44 @@
+# Column baseline for SSW routine 076 (one file per unit and month).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 076 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded — both the direct download and the screen-156 path.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '076'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'PLACA'
+  2: 'TIPO BAIXA'
+  3: 'DATA BAIXA'
+  4: 'CTRC'
+  5: 'NF'
+  6: 'CNPJ REMETENTE'
+  7: 'NOME REMETENTE'
+  8: 'CIDADE REMETENTE'
+  9: 'CNPJ EXPEDIDOR'
+  10: 'NOME EXPEDIDOR'
+  11: 'CNPJ DESTINATARIO'
+  12: 'NOME DESTINATARIO'
+  13: 'CNPJ RECEBEDOR'
+  14: 'NOME RECEBEDOR'
+  15: 'CIDADE ENTREGA'
+  16: 'CNPJ PAGADOR'
+  17: 'NOME PAGADOR'
+  18: 'OCORRENCIA DE BAIXA DE ENTREGA'
+  19: 'DATA DA OCORRENCIA DE BAIXA DE ENTREGA'
+  20: 'VLR CTRC ORIGEM'
+  21: 'SET'
+  22: 'PESO CALCULO'
+  23: 'QTVOL'
+  24: 'VAL MERC'
+  25: 'ICMS'
+  26: 'VLR FRETE'
+  27: 'BASE CALC'
+  28: 'ROMANEIO'
+  29: 'CTRB/OS'

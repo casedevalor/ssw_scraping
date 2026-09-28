@@ -1,0 +1,62 @@
+# Column baseline for SSW routine 036.
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 036 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '036'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: '1'                    # SSW row counter
+  2: 'ROMANEIO'
+  3: 'DATA EMISSAO'
+  4: 'HORA EMISSAO'
+  5: 'SITUACAO'
+  6: 'PLACA'
+  7: 'PLACA CARRETA'
+  8: 'MOTORISTA'
+  9: 'CPF DO MOTORISTA'
+  10: 'SEGURADORA'
+  11: 'AUTORIZACAO'
+  12: 'VALIDADE'
+  13: 'CTRC'
+  14: 'TIPO DE FRETE'
+  15: 'NOME REMETENTE'
+  16: 'NOME DESTINATARIO'
+  17: 'CNPJ PAGADOR'
+  18: 'NOME PAGADOR'
+  19: 'CIDADE PAGADOR'
+  20: 'CIDADE_ENTREGA'
+  21: 'CEP ENTREGA'
+  22: 'LOCAL DE ENTREGA'
+  23: 'BAIRRO'
+  24: 'SETOR DEST'
+  25: 'COD OCORR ROM'
+  26: 'DESC OCORR ROM'
+  27: 'DATA OCORR ROM'
+  28: 'HORA OCORR ROM'
+  29: 'COD OCORR CTRC'
+  30: 'DESC OCORR CTRC'
+  31: 'DATA OCORR CTRC'
+  32: 'HORA OCORR CTRC'
+  33: 'FRETE CTRC ORIGEM'
+  34: 'FRETE CTRC'
+  35: 'PESO CALCULO'
+  36: 'QTDE VOL'
+  37: 'VLR MERC'
+  38: 'COD MERC'
+  39: 'SERIE NF'
+  40: 'NUMERO NF'
+  41: 'NRO_PEDIDO'
+  42: 'CONFERENTE'
+  43: 'AJUDANTE'
+  44: 'AJUDANTE_2'
+  45: 'AJUDANTE_3'
+  46: 'EMITIDO POR'
+  47: 'PREV ENTREGA CTRC'

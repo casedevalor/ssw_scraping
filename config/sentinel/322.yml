@@ -1,0 +1,32 @@
+# Column baseline for SSW routine 322 (one file per year).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# Routine 322 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded.
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '322'
+# header_line omitted: the header is auto-detected in the first lines
+delimiter: ';'
+encoding: 'windows-1252'
+columns:
+  1: 'VEICULO'
+  2: 'TIPO VEICULO'
+  3: 'MARCA'
+  4: 'MODELO'
+  5: 'DATA'
+  6: 'ODOMETRO ANTERIOR'
+  7: 'ODOMETRO'
+  8: 'KM PERCORRIDO'
+  9: 'FORNECEDOR'
+  10: 'CNPJ FORNECEDOR'
+  11: 'NUMLANC'
+  12: 'LITROS'
+  13: 'VALOR'
+  14: 'KM/L'
+  15: 'MOTORISTA'
+  16: 'USUARIO'
+  17: 'INCLUSAO'

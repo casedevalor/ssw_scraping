@@ -1,0 +1,4 @@
+- [Log messages simple](log-messages-simple.md) — one-line, objective log messages; no paths or library noise
+- [Column sentinel design](column-sentinel-design.md) — per-company baselines, check after processing, open decisions
+- [Per-range function shape](per-range-function-shape.md) — premise: all multi-range bots use split _process_date_range + standard re-raising loop
+- [SSW_SENTINEL is the standard folder](sentinel-is-standard-folder.md) — since 2026-09-27 this folder is the pasta padrão; hand-offs target company copies only
