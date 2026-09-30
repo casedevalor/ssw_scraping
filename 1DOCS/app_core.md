@@ -20,7 +20,7 @@ Todo `run()` de bot chama só `perform_login(page, ROUTINE)` logo após abrir a 
 | Função | Assinatura | O que faz |
 | --- | --- | --- |
 | `upload_report_file(...)` | `async def upload_report_file(file_name, routine, domain, attempt, max_attempts, report=None) -> None` | Sobe um relatório já baixado (`output/downloads/<routine>/<file_name>`) para `Banco_de_Dados/<domain>/<pasta>` no SharePoint. Levanta `FileNotFoundError` se o arquivo local não existir. |
-| `upload_log_file(domain)` | `def upload_log_file(domain: str) -> None` (síncrona!) | Sobe `output/logs/<domain>.log` para `Banco_de_Dados/BOTLOGS`. Chamada de dentro de `main()` via `run_in_executor` porque é síncrona. Se o log não existir, só loga WARNING e retorna (não levanta). |
+| `upload_log_file(domain, routine=None)` | `def upload_log_file(domain: str, routine: Optional[str] = None) -> None` (síncrona!) | Sobe `output/logs/<domain>.log` para `Banco_de_Dados/BOTLOGS`. Chamada de dentro de `main()` via `run_in_executor` porque é síncrona. Se o log não existir, só loga WARNING e retorna (não levanta). |
 | `_resolve_remote_folder(routine, domain, report)` | privada | Decide a pasta remota. Regra: `455ABH` → pasta compartilhada `"455"` (não `"455ABH"`); `056` com `report` → subpasta `"056/<report>"`; qualquer outra rotina → a própria pasta com o nome da rotina. |
 
 **Se uma rotina nova precisar de uma pasta remota diferente do padrão `Banco_de_Dados/<domain>/<ROUTINE>`**, é aqui — em `_resolve_remote_folder` — que se adiciona a exceção, não no bot.
@@ -37,11 +37,11 @@ await process_156_report(page, date, routine, domain, attempt, max_attempts, uni
 
 Internamente:
 1. **Captura o número de sequência** da linha recém-criada na tabela da 156.
-2. **`_wait_for_report()`** — atualiza a tela (`MAX_REFRESH_ATTEMPTS = 120`, 4s entre tentativas → até 8 min; subiu de 30 em 27/09/2026 porque algumas empresas demoram mais para liberar o arquivo) até a linha ficar "Concluído / Baixar". Se completar sem dados (ex.: "NÃO SELECIONOU CTRCS"), retorna `False` e o download é pulado — não é erro. Se nunca completar, levanta `TimeoutError`.
-3. **Baixa o arquivo** (timeout `DOWNLOAD_TIMEOUT_MS = 120_000`).
+2. **`_wait_for_report()`** — atualiza a tela (`MAX_REFRESH_ATTEMPTS = 120`, 4s entre tentativas → até 8 min; subiu de 30 em 27/09/2026 porque algumas empresas demoram mais para liberar o arquivo) até a linha ficar "Concluído / Baixar". Cada atualização (`_refresh()`) clica em "Atualizar" e **espera o HTML da página carregar** (`domcontentloaded`, não `load` — o `load` espera toda imagem/script e pode nunca disparar); clique, carga e leitura da linha têm timeout curto (`STEP_TIMEOUT_MS = 10_000`) e, se a tela travar, a página é recarregada em vez de esperar os 120 s do contexto (se o recarregamento também travar, só segue para a próxima passada — `_refresh()` nunca levanta erro). Se completar sem dados (ex.: "NÃO SELECIONOU CTRCS"), retorna `False` e o download é pulado — não é erro. Se nunca completar, levanta `TimeoutError`.
+3. **Baixa o arquivo** via `_download_report()`. O "Baixar" não é link de arquivo: é `ajaxEnvia('DOW<seq>')`, e o SSW **ignora o clique** com o alerta *"Ja existe uma requisicao em andamento."* (já existe uma requisição em andamento) se outra chamada AJAX da tela ainda estiver pendente — era essa a causa dos downloads que não começavam com o arquivo pronto (29/09/2026). Por isso `_click_and_catch_download()` só clica com a tela ociosa (sem requisição pendente + 1 s), e, se o alerta aparecer, espera a requisição pendente terminar e clica de novo (até `MAX_BUSY_RETRIES = 10`). Depois que "Baixar" aparece, **a tela nunca mais é atualizada** — um "Atualizar" dispararia justamente outra requisição. O download é escutado em qualquer página do navegador; se não começar em `DOWNLOAD_TIMEOUT_MS = 60_000`, loga um `WARN` e clica de novo, até `MAX_DOWNLOAD_CLICKS = 4` vezes.
 4. **Nomeia e processa** via `ROUTINE_HANDLERS` + `_build_file_name()` (ver gotcha abaixo).
-5. **Confere as colunas** do arquivo já processado via `check_file()` — só se a rotina tiver baseline em `config/sentinel/<ROUTINE>.yml` (`has_baseline`). Escreve uma linha no log do domínio e nunca levanta erro (ver `column_sentinel.py` abaixo).
-6. **Sobe** via `upload_report_file()`.
+5. **Sobe** via `upload_report_file()`.
+6. **Confere as colunas** do arquivo já processado via `check_file()` — só se a rotina tiver baseline em `config/sentinel/<ROUTINE>.yml` (`has_baseline`). Roda depois do upload para a linha do sentinel fechar o bloco do arquivo no log; escreve uma linha no log do domínio e nunca levanta erro (ver `column_sentinel.py` abaixo).
 7. **Sempre fecha a página** no `finally`, mesmo em erro.
 
 ### ⚠️ Gotcha: registrar uma rotina nova na 156
@@ -81,7 +81,7 @@ Padrão: recebe o caminho do arquivo (`file_path` ou `file_name` — a assinatur
 
 ## 🛡️ `column_sentinel.py` — conferência de colunas
 
-Compara o cabeçalho de um arquivo baixado com a baseline fixa da rotina (`config/sentinel/<ROUTINE>.yml`: `posição: 'nome'`, começando em 1) e escreve **uma linha** no log do domínio: `OK` (INFO), `DRIFT` (WARNING, com `ADDED` / `REMOVED` / `RENAMED` / `MOVED` / `DUPLICATED` e a letra da coluna no Excel) ou `ERROR` (arquivo ilegível, cabeçalho não encontrado, baseline quebrada). **Nunca bloqueia** — o upload segue normalmente.
+Compara o cabeçalho de um arquivo baixado com a baseline fixa da rotina (`config/sentinel/<ROUTINE>.yml`: `posição: 'nome'`, começando em 1) e escreve **uma linha** no log do domínio: `OK` (nível próprio `SNTL`, entre INFO e WARN), `DRIFT` (WARNING, com `ADDED` / `REMOVED` / `RENAMED` / `MOVED` / `DUPLICATED` e a letra da coluna no Excel) ou `ERROR` (arquivo ilegível, cabeçalho não encontrado, baseline quebrada). **Nunca bloqueia** — o upload segue normalmente.
 
 | Função | Assinatura | O que faz |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ Compara o cabeçalho de um arquivo baixado com a baseline fixa da rotina (`confi
 | `compare_columns(expected, actual)` | `def compare_columns(expected: List[str], actual: List[str]) -> ColumnReport` | Classifica as diferenças. Uma coluna inserida vira um único `ADDED` (as seguintes não viram `MOVED`). |
 
 **Onde é chamada:**
-- `downloads.py → process_156_report`, depois do processamento e antes do upload — cobre toda rotina da tela 156 que tenha baseline (019, 076, 306, 324, 441, 455ABH, 455CGK, 455F, 467, 477, 493, 930).
+- `downloads.py → process_156_report`, depois do processamento e logo após o upload (a linha do sentinel fecha o bloco do arquivo no log) — cobre toda rotina da tela 156 que tenha baseline (019, 076, 306, 324, 441, 455ABH, 455CGK, 455F, 467, 477, 493, 930).
 - Direto nos bots, nos caminhos de download sem a 156: `bot_002.py`, `bot_019.py`, `bot_036.py`, `bot_073.py` (um check por csv do zip: `073-FROTA` / `073-TERCEIROS`), `bot_076.py`, `bot_081.py`, `bot_103.py`, `bot_119.py`, `bot_200.py`, `bot_306.py`, `bot_322.py`, `bot_411.py`, `bot_435.py`, `bot_441.py`, `bot_442.py`, `bot_452.py`, `bot_458.py`, `bot_477.py`.
 
 **Formatos:** lê CSV (separador/encoding da baseline) e `.xlsx` (primeira aba — usado pela 119 e pela 324, cujo processamento gera Excel, e pela 458, que monta o Excel a partir da tabela raspada).

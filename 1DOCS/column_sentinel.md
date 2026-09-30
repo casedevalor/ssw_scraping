@@ -14,9 +14,9 @@ SharePoint as before. The sentinel only adds information to the log.
 ## How it works
 
 ```
-download ──► processing (if the routine has one) ──► COLUMN CHECK ──► upload to SharePoint
-                                                         │
-                                                         └─► 1 line in output/logs/<DOMAIN>.log
+download ──► processing (if the routine has one) ──► upload to SharePoint ──► COLUMN CHECK
+                                                                                   │
+                                                          1 line in output/logs/<DOMAIN>.log ◄─┘
 ```
 
 1. The routine downloads the file from SSW.
@@ -25,10 +25,26 @@ download ──► processing (if the routine has one) ──► COLUMN CHECK �
    Power BI expects.
 3. The sentinel reads **only the header** of the resulting file (the report
    body is never loaded) and compares it with `config/sentinel/<ROUTINE>.yml`.
-4. The verdict goes to the domain log. The file is then uploaded normally.
+   This happens **right after the upload**, on the local copy (still on disk
+   until the end-of-run cleanup).
+4. The verdict goes to the domain log as the last line of that file's block.
 
 Why after processing: the processing step absorbs the SSW changes we already
 know about. The sentinel only needs to flag what is still **unknown**.
+
+Why after the upload (user decision, 2026-09-29): each file's block in the
+domain log reads in order — dates → upload → sentinel — so the sentinel line
+closes it. If the upload raises, the check doesn't run for that file (the
+range fails with an `ERROR` line instead).
+
+Log block per date range (the log file is newest-first, so read it bottom-up):
+
+```
+SNTL - NBL SENTINEL 306 | 2026-09-NBL-306-1.csv | Columns: 14 found / 14 expected | OK
+INFO - NBL ROUTINE 306 | '2026-09-NBL-306-1.csv' uploaded to 'softweb268/Banco_de_Dados/NBL/306' - attempt 1/3.
+INFO - NBL ROUTINE 306 | Start Dates: [010926 → 150926]
+INFO - NBL ROUTINE 306 | Login successful.
+```
 
 ---
 
@@ -58,12 +74,12 @@ A routine **without** a baseline file is simply not checked — no error, no log
 | 081 | `081.yml` | 47 | auto-detect | none (raw file) | `bot_081.py` |
 | 103 | `103.yml` | 47 | 1 | `processing_csv_103` (selects/orders columns) — dormant | `bot_103.py` |
 | 119 | `119.yml` | 7 | 1 (`.xlsx`) | `processing_sswweb_119` (`.sswweb` → `.xlsx`) — dormant | `bot_119.py` |
-| 200 | `200.yml` | 69 | auto-detect | none (raw file) | `bot_200.py` — both download paths |
+| 200 | `200.yml` | 70 | auto-detect | none (raw file) | `bot_200.py` — both download paths |
 | 306 | `306.yml` | 14 | auto-detect | none (raw file) | `bot_306.py` (direct + after prompt) + `downloads.py` (156) |
 | 322 | `322.yml` | 17 | auto-detect | none (raw file) | `bot_322.py` — one check per year |
 | 324 | `324.yml` | 7 | 1 (`.xlsx`) | `processing_sswweb_324` (`.sswweb` → `.xlsx`) — dormant | `downloads.py` (156) |
-| 411 | `411.yml` | 28 | auto-detect | none (raw file) | `bot_411.py` |
-| 435 | `435.yml` | 39 | auto-detect | none (raw file) | `bot_435.py` — csv option only (the txt has no header) |
+| 411 | `411.yml` | 29 | auto-detect | none (raw file) | `bot_411.py` |
+| 435 | `435.yml` | 40 | auto-detect | none (raw file) | `bot_435.py` — csv option only (the txt has no header) |
 | 441 | `441.yml` | 53 | 1 | `processing_csv_441` (fills/selects/orders columns) — dormant | `bot_441.py` (direct) + `downloads.py` (156) |
 | 442 | `442.yml` | 15 | auto-detect | none (raw file) | `bot_442.py` |
 | 452 | `452.yml` | 23 | 1 | `processing_csv_452` (drops title lines, keeps all columns) | `bot_452.py` |
@@ -169,14 +185,14 @@ instead of comparing against a broken contract:
 One line per checked file, in the domain log (`output/logs/<DOMAIN>.log`):
 
 ```
-<date time> - <LEVEL> - <DOMAIN> SENTINEL | <routine> | <file> | Columns: <found> found / <expected> expected [(±n)] | <STATUS> [| details]
+<date time> - <LEVEL> - <DOMAIN> SENTINEL <routine> | <file> | Columns: <found> found / <expected> expected [(±n)] | <STATUS> [| details]
 ```
 
 ### Status
 
 | Level | Status | Meaning |
 |---|---|---|
-| `INFO` | `OK` | Layout identical to the baseline. |
+| `SNTL` | `OK` | Layout identical to the baseline. `SNTL` is a dedicated level (25, between INFO and WARN) so the line stands out. |
 | `WARNING` | `DRIFT` | Something changed — details follow on the same line. |
 | `ERROR` | `ERROR` | The check could not run (unreadable file, header not found, broken baseline). |
 
@@ -207,20 +223,20 @@ How changes are classified:
 ### Examples
 
 ```
-INFO - RPV SENTINEL | 455CGK | 2026-08-RPV-455CGK.csv | Columns: 31 found / 31 expected | OK
-WARN - RPV SENTINEL | 002 | 2026-09-RPV-002.csv | Columns: 41 found / 40 expected (+1) | DRIFT | ADDED: [G] 'NOVA'
-WARN - TEC SENTINEL | 036 | 2026-09-TEC-036.csv | Columns: 46 found / 47 expected (-1) | DRIFT | REMOVED: [K] 'AUTORIZACAO'
-WARN - RPV SENTINEL | 019 | RPV-SMD-019.csv | Columns: 30 found / 30 expected | DRIFT | RENAMED: [O] 'SET' -> 'SETOR'
-WARN - TEC SENTINEL | 076 | 2026-09-TEC-RIC-076.csv | Columns: 29 found / 29 expected | DRIFT | MOVED: 'SET' U -> AC
+SNTL - RPV SENTINEL 455CGK | 2026-08-RPV-455CGK.csv | Columns: 31 found / 31 expected | OK
+WARN - RPV SENTINEL 002 | 2026-09-RPV-002.csv | Columns: 41 found / 40 expected (+1) | DRIFT | ADDED: [G] 'NOVA'
+WARN - TEC SENTINEL 036 | 2026-09-TEC-036.csv | Columns: 46 found / 47 expected (-1) | DRIFT | REMOVED: [K] 'AUTORIZACAO'
+WARN - RPV SENTINEL 019 | RPV-SMD-019.csv | Columns: 30 found / 30 expected | DRIFT | RENAMED: [O] 'SET' -> 'SETOR'
+WARN - TEC SENTINEL 076 | 2026-09-TEC-RIC-076.csv | Columns: 29 found / 29 expected | DRIFT | MOVED: 'SET' U -> AC
 ```
 
 ### Errors
 
 ```
-ERRO - TEC SENTINEL | 455ABH | 2026-08-TEC-455ABH.csv | ERROR | missing position(s) [K] [11] 'Placa de Coleta'
-ERRO - RPV SENTINEL | 002 | 2026-09-RPV-002.csv | ERROR | duplicated column name(s) ['VENDEDOR']
-ERRO - RPV SENTINEL | 002 | 2026-09-RPV-002.csv | ERROR | empty column name
-ERRO - RPV SENTINEL | 002 | no_header.csv | ERROR | No header found in the first 10 lines: no_header.csv
+ERRO - TEC SENTINEL 455ABH | 2026-08-TEC-455ABH.csv | ERROR | missing position(s) [K] [11] 'Placa de Coleta'
+ERRO - RPV SENTINEL 002 | 2026-09-RPV-002.csv | ERROR | duplicated column name(s) ['VENDEDOR']
+ERRO - RPV SENTINEL 002 | 2026-09-RPV-002.csv | ERROR | empty column name
+ERRO - RPV SENTINEL 002 | no_header.csv | ERROR | No header found in the first 10 lines: no_header.csv
 ```
 
 - `missing position(s)`: the baseline numbering has a gap. The column name is
@@ -257,7 +273,7 @@ Baselines are **per company**: each company's project copy has its own
 ### Add a new routine
 
 1. Create `config/sentinel/<ROUTINE>.yml` with the columns (1-based).
-2. Hook the check right **after the file is saved/processed** and **before the upload**:
+2. Hook the check right **after the upload** of the saved/processed file:
    - Routine downloads through screen 156 → nothing to do, `downloads.py` already checks
      every routine that has a baseline.
    - Routine downloads directly → in `bot_<ROUTINE>.py`:
@@ -265,6 +281,7 @@ Baselines are **per company**: each company's project copy has its own
      from app.core.column_sentinel import check_file
 
      await download.save_as(path_download / file_name)
+     await upload_report_file(...)
      check_file(path_download / file_name, ROUTINE, domain)
      ```
      When the file name is not the routine (e.g. 073), guard with
@@ -305,27 +322,27 @@ Copy:
 Edit by hand (don't overwrite — the target file may have company-specific code):
 
 - `app/core/downloads.py` — import `check_file, has_baseline` and, in
-  `process_156_report`, right after `file_name = await handler(...)` and before
-  the upload:
+  `process_156_report`, right after the `upload_report_file(...)` that follows
+  `file_name = await handler(...)`:
   ```python
   if has_baseline(routine):
       check_file(path_download / file_name, routine, domain)
   ```
 - `bot_002.py`, `bot_019.py`, `bot_036.py`, `bot_076.py`, `bot_081.py`, `bot_200.py`, `bot_306.py`, `bot_322.py`, `bot_411.py`, `bot_435.py`, `bot_442.py`, `bot_477.py` — import `check_file`
-  and add `check_file(path_download / file_name, ROUTINE, domain)` after each
-  `await download.save_as(...)` that is followed by an upload.
+  and add `check_file(path_download / file_name, ROUTINE, domain)` right after
+  each `await upload_report_file(...)` that follows a `download.save_as(...)`.
 - `bot_103.py` — import `check_file` and add `check_file(full_file_path, ROUTINE, domain)`
-  after `processing_csv_103` and before `upload_report_file`.
+  after `processing_csv_103` and right after `upload_report_file`.
 - `bot_452.py` — import `check_file` and add `check_file(full_file_path, ROUTINE, domain)`
-  after `processing_csv_452` and before `upload_report_file`.
+  after `processing_csv_452` and right after `upload_report_file`.
 - `bot_458.py` — import `check_file` and add `check_file(full_file_path, ROUTINE, domain)`
-  after the `.xlsx` is written and before `upload_report_file`.
+  after the `.xlsx` is written and right after `upload_report_file`.
 - `bot_119.py` — import `check_file` and add `check_file(path_download / new_file_name, ROUTINE, domain)`
-  after `processing_sswweb_119` and before `upload_report_file`.
+  after `processing_sswweb_119` and right after `upload_report_file`.
 - `bot_441.py` — import `check_file` and add `check_file(path_download / final_file_name, ROUTINE, domain)`
-  after `processing_csv_441` and before `upload_report_file`.
-- `bot_073.py` — import `check_file, has_baseline` and add, after
-  `shutil.copyfileobj(...)` and after `save_as` in `_save_and_upload`:
+  after `processing_csv_441` and right after `upload_report_file`.
+- `bot_073.py` — import `check_file, has_baseline` and add, right after the
+  `upload_report_file(...)` in `_extract_and_upload_zip` and in `_save_and_upload`:
   ```python
   if has_baseline(routine_name):
       check_file(path_download / file_name, routine_name, domain)

@@ -64,7 +64,7 @@ async def _process_date_range(
     """
     Fills the form for one date range and races download vs. message: a
     direct download (or the one triggered after the "report generated"
-    prompt) is saved, checked by the column sentinel and uploaded; "no
+    prompt) is saved, uploaded and then checked by the column sentinel; "no
     records" is logged as WARNING and returns normally.
 
     Raises:
@@ -124,8 +124,6 @@ async def _process_date_range(
         await download.save_as(path_download / file_name)
         # SSW shows a confirmation modal after the download — dismiss it.
         await page.get_by_role("link", name=SEL_BTN_OK).click()
-        # Logs one line only; a column drift never blocks the upload.
-        check_file(path_download / file_name, ROUTINE, domain)
 
         await upload_report_file(
             file_name=file_name,
@@ -134,14 +132,9 @@ async def _process_date_range(
             attempt=attempt,
             max_attempts=max_attempts,
         )
-        log.log(
-            level=logging.INFO,
-            domain=domain,
-            message=(
-                f"{domain} ROUTINE {ROUTINE} | "
-                f"[{start_date} → {end_date}] Download and upload successful."
-            ),
-        )
+        # After the upload, so its line closes this file's block in the log;
+        # logs one line only and never raises.
+        check_file(path_download / file_name, ROUTINE, domain)
         return
 
     # ------------------------------------------------------------------
@@ -183,7 +176,6 @@ async def _process_date_range(
         path_download = cwd / "output" / "downloads" / ROUTINE
         path_download.mkdir(parents=True, exist_ok=True)
         await download.save_as(path_download / file_name)
-        check_file(path_download / file_name, ROUTINE, domain)
 
         await upload_report_file(
             file_name=file_name,
@@ -192,14 +184,7 @@ async def _process_date_range(
             attempt=attempt,
             max_attempts=max_attempts,
         )
-        log.log(
-            level=logging.INFO,
-            domain=domain,
-            message=(
-                f"{domain} ROUTINE {ROUTINE} | "
-                f"[{start_date} → {end_date}] Download and upload successful (after prompt)."
-            ),
-        )
+        check_file(path_download / file_name, ROUTINE, domain)
 
 
 async def handler_download(
@@ -220,6 +205,11 @@ async def handler_download(
     failures: int = 0
 
     for dates in date_ranges:
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Start Dates: [{dates[0]} → {dates[1]}]",
+        )
         try:
             await _process_date_range(page, domain, dates, attempt, max_attempts)
         except Exception as e_range:
@@ -354,45 +344,38 @@ async def main() -> None:
                         log.log(
                             level=logging.INFO,
                             domain=settings.ssw_domain,
-                            message=f"Attempt {attempt} failed. Retrying in 5s...",
+                            message=f"{settings.ssw_domain} ROUTINE {ROUTINE} | Attempt {attempt} failed. Retrying in 5s...",
                         )
                         await asyncio.sleep(5)
     finally:
         # Runs exactly once, regardless of how many attempts happened or
-        # how the routine ended.
-        log.log(
-            level=logging.INFO,
-            domain=settings.ssw_domain,
-            message=f"INFO - {ROUTINE} - Main routine completed. Starting final cleanup...",
-        )
+        # how the routine ended. The "completed" line goes last on purpose:
+        # nothing this run logs may come after it.
+        domain: str = settings.ssw_domain
 
-        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # A cleanup failure is logged, not raised.
         try:
-            log.debug(
-                message=f"INFO - {ROUTINE} - Sending final log to SharePoint...",
-                level="INFO",
-            )
-            await asyncio.get_event_loop().run_in_executor(
-                None, lambda: upload_log_file(domain=settings.ssw_domain)
-            )
-
-        except Exception as e_log:
-            log.log(
-                level=logging.ERROR,
-                domain=settings.ssw_domain,
-                message=f"CRITICAL ERROR: Failed to send final log for {ROUTINE}: {e_log}",
-            )
-
-        # Same reasoning: a cleanup failure is logged, not raised.
-        try:
-            log.debug(
-                message=f"INFO - {ROUTINE} - Cleaning up downloads...", level="INFO"
-            )
+            log.debug(f"Cleaning up downloads for {ROUTINE}...")
             GarbageCollector().delete(cwd / "output" / "downloads" / ROUTINE)
-
         except Exception as e_gc:
             log.log(
                 level=logging.WARNING,
-                domain=settings.ssw_domain,
-                message=f"WARNING - {ROUTINE} - Failed to clean downloads: {e_gc}",
+                domain=domain,
+                message=f"{domain} ROUTINE {ROUTINE} | Failed to clean downloads: {e_gc}",
             )
+
+        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # upload_log_file() logs its own success/failure line.
+        try:
+            log.debug(f"Sending final log to SharePoint for {ROUTINE}...")
+            await asyncio.get_event_loop().run_in_executor(
+                None, lambda: upload_log_file(domain=domain, routine=ROUTINE)
+            )
+        except Exception as e_log:
+            log.debug(f"{domain} ROUTINE {ROUTINE} | Final log upload failed: {e_log}", level="ERRO")
+
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Main routine completed.",
+        )

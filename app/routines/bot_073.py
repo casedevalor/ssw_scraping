@@ -128,8 +128,6 @@ async def _process_date_range(
         path_download.mkdir(parents=True, exist_ok=True)
 
         await download.save_as(path_download / file_name)
-        if has_baseline(routine_name):
-            check_file(path_download / file_name, routine_name, domain)
 
         await upload_report_file(
             file_name=file_name,
@@ -138,16 +136,8 @@ async def _process_date_range(
             attempt=attempt,
             max_attempts=max_attempts,
         )
-
-        log.log(
-            level=logging.INFO,
-            domain=domain,
-            message=(
-                f"{domain} ROUTINE {ROUTINE} | "
-                f"Dates: [{dates[0]} → {dates[1]}] | "
-                f"Download and upload successful: {file_name}"
-            ),
-        )
+        if has_baseline(routine_name):
+            check_file(path_download / file_name, routine_name, domain)
 
     # ------------------------------------------------------------------
     # DISABLED (kept for reference in case SSW reverts to this model).
@@ -305,10 +295,6 @@ async def _process_date_range(
                 ):
                     shutil.copyfileobj(source, target)
 
-                # Each csv has its own baseline: 073-FROTA.yml / 073-TERCEIROS.yml
-                if has_baseline(routine_name):
-                    check_file(path_download / file_name, routine_name, domain)
-
                 await upload_report_file(
                     file_name=file_name,
                     routine=ROUTINE,
@@ -316,16 +302,9 @@ async def _process_date_range(
                     attempt=attempt,
                     max_attempts=max_attempts,
                 )
-
-                log.log(
-                    level=logging.INFO,
-                    domain=domain,
-                    message=(
-                        f"{domain} ROUTINE {ROUTINE} | "
-                        f"Dates: [{dates[0]} → {dates[1]}] | "
-                        f"Download and upload successful: {file_name}"
-                    ),
-                )
+                # Each csv has its own baseline: 073-FROTA.yml / 073-TERCEIROS.yml
+                if has_baseline(routine_name):
+                    check_file(path_download / file_name, routine_name, domain)
 
                 uploaded_count += 1
 
@@ -631,6 +610,11 @@ async def handler_download(
     failures: int = 0
 
     for dates in date_ranges:
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Start Dates: [{dates[0]} → {dates[1]}]",
+        )
         try:
             await _process_date_range(page, domain, dates, attempt, max_attempts)
         except Exception as e_range:
@@ -816,61 +800,40 @@ async def main() -> None:
                         log.log(
                             level=logging.INFO,
                             domain=settings.ssw_domain,
-                            message=(
-                                f"Attempt {attempt} failed. " f"Retrying in 5 s..."
-                            ),
+                            message=f"{settings.ssw_domain} ROUTINE {ROUTINE} | Attempt {attempt} failed. Retrying in 5s...",
                         )
 
                         await asyncio.sleep(5)
 
     finally:
-
         # Runs exactly once, regardless of how many attempts happened or
-        # how the routine ended.
-        log.log(
-            level=logging.INFO,
-            domain=settings.ssw_domain,
-            message=(
-                f"INFO - {ROUTINE} - "
-                f"Main routine completed. "
-                f"Starting final cleanup..."
-            ),
-        )
+        # how the routine ended. The "completed" line goes last on purpose:
+        # nothing this run logs may come after it.
+        domain: str = settings.ssw_domain
 
-        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # A cleanup failure is logged, not raised.
         try:
-
-            log.debug(f"Sending final log to " f"SharePoint for {ROUTINE}...")
-
-            await asyncio.get_event_loop().run_in_executor(
-                None, lambda: upload_log_file(domain=settings.ssw_domain)
-            )
-
-        except Exception as e_log:
-
-            log.log(
-                level=logging.ERROR,
-                domain=settings.ssw_domain,
-                message=(
-                    f"CRITICAL ERROR: "
-                    f"Failed to send final log "
-                    f"for {ROUTINE}: {e_log}"
-                ),
-            )
-
-        # Same reasoning: a cleanup failure is logged, not raised.
-        try:
-
-            log.debug(f"Cleaning up downloads " f"for {ROUTINE}...")
-
+            log.debug(f"Cleaning up downloads for {ROUTINE}...")
             GarbageCollector().delete(cwd / "output" / "downloads" / ROUTINE)
-
         except Exception as e_gc:
-
             log.log(
                 level=logging.WARNING,
-                domain=settings.ssw_domain,
-                message=(
-                    f"WARNING - {ROUTINE} - " f"Failed to clean downloads: " f"{e_gc}"
-                ),
+                domain=domain,
+                message=f"{domain} ROUTINE {ROUTINE} | Failed to clean downloads: {e_gc}",
             )
+
+        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # upload_log_file() logs its own success/failure line.
+        try:
+            log.debug(f"Sending final log to SharePoint for {ROUTINE}...")
+            await asyncio.get_event_loop().run_in_executor(
+                None, lambda: upload_log_file(domain=domain, routine=ROUTINE)
+            )
+        except Exception as e_log:
+            log.debug(f"{domain} ROUTINE {ROUTINE} | Final log upload failed: {e_log}", level="ERRO")
+
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Main routine completed.",
+        )

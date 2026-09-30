@@ -37,7 +37,7 @@ flowchart TD
     C --> D[Fill dates + fields E/C/G/K]
     D --> E[Click ►]
     E --> F["Click '1. Abrir a opção 156 agora' (always routes to 156)"]
-    F --> G["process_156_report: download → processing_csv_455CGK → check columns → upload"]
+    F --> G["process_156_report: download → processing_csv_455CGK → upload → check columns"]
     G --> C
     C -.->|all ranges failed| H[RuntimeError]
 ```
@@ -83,7 +83,7 @@ Same shared screen as [455ABH](./bot_455ABH.md) — here the fields are filled w
 - Up to **3 attempts** (`MAX_ATTEMPTS`), with `5s` between them.
 - Standard multi-range loop: `handler_download` runs `_process_date_range` once per date range; a failure is logged as one `ERROR` line and the next date range still runs. The attempt only fails (and `main()` retries) when **every** date range failed.
 - Aborts before the 3rd attempt if the message is `MSG_NOT_RELEASED`.
-- Single cleanup at the end: domain log upload + `GarbageCollector` on `output/downloads/455CGK/`.
+- Single cleanup at the end: `GarbageCollector` on `output/downloads/455CGK/`, then the domain log upload, then the `Main routine completed.` line — always the last line of the run.
 
 ---
 
@@ -91,20 +91,20 @@ Same shared screen as [455ABH](./bot_455ABH.md) — here the fields are filled w
 
 > ⚠️ **Dormant today.** `processing_csv_455CGK` rewrites the file with exactly `config.yml → columns_455CGK`, so the processed header always equals that list; a removed/renamed SSW column fails earlier with `KeyError`, and added/moved ones are dropped or reordered. So this check logs `OK` whatever SSW changes — it **validates nothing** while the routine is built this way. The baseline is kept ready (decided with the user on 2026-09-27) for when the fixed column list is replaced by another method; at that point it starts catching real changes with no code change.
 
-Every downloaded file is checked against a fixed column baseline before the upload. The result is **one line in the domain log** — the upload always proceeds (see [column_sentinel.md](./column_sentinel.md)).
+Every downloaded file is checked against a fixed column baseline right after the upload. The result is **one line in the domain log**, which closes that file's block — it never raises and never affects the upload (see [column_sentinel.md](./column_sentinel.md)).
 
 | Baseline | Columns | Header |
 | --- | --- | --- |
 | `config/sentinel/455CGK.yml` | 31 | line 1 (processing drops the SSW title line) |
 
-- **Where it runs:** `downloads.py → process_156_report`, right after `processing_csv_455CGK` and before `upload_report_file(...)`.
+- **Where it runs:** `downloads.py → process_156_report`, right after `processing_csv_455CGK` and after `upload_report_file(...)`.
 - **Processing before the check:** `processing_csv_455CGK` runs **first** — it keeps only the columns listed in `config.yml → variables.bot_455CGK.columns_455CGK`, in that order. The baseline must match that list exactly (same names, same order).
 - **Note:** Known limitation: if SSW removes or renames one of the 31 selected columns, the processing raises `KeyError` before the check runs (logged as a range failure). Columns added or moved in the raw file don't reach the output, so they are not flagged.
 
 Log line when the layout is intact:
 
 ```
-INFO - RPV SENTINEL | 455CGK | 2026-08-RPV-455CGK.csv | Columns: 31 found / 31 expected | OK
+SNTL - RPV SENTINEL 455CGK | 2026-08-RPV-455CGK.csv | Columns: 31 found / 31 expected | OK
 ```
 
 Any change shows up as `DRIFT` with `ADDED` / `REMOVED` / `RENAMED` / `MOVED` and the Excel column letter; a broken baseline shows up as `ERROR`.

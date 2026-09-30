@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from app.utils.custom_logger import get_logger
+from app.utils.custom_logger import SENTINEL, get_logger
 
 
 log = get_logger()
@@ -331,8 +331,7 @@ def _format_report(domain: str, routine: str, file_name: str, report: ColumnRepo
     delta: int = report.actual_count - report.expected_count
     delta_tag: str = f" ({delta:+d})" if delta else ""
     parts: List[str] = [
-        f"{domain} SENTINEL",
-        routine,
+        f"{domain} SENTINEL {routine}",
         file_name,
         f"Columns: {report.actual_count} found / {report.expected_count} expected{delta_tag}",
         str(report.status),
@@ -391,7 +390,7 @@ def _log_error(domain: str, routine: str, file_path: Path, detail: str) -> None:
     log.log(
         level=logging.ERROR,
         domain=domain,
-        message=f"{domain} SENTINEL | {routine} | {file_path.name} | {SentinelStatus.ERROR} | {single_line}",
+        message=f"{domain} SENTINEL {routine} | {file_path.name} | {SentinelStatus.ERROR} | {single_line}",
     )
 
 
@@ -422,6 +421,7 @@ def check_file(file_path: Path, routine: str, domain: str) -> SentinelStatus:
         _log_error(domain, routine, file_path, str(e))
         return SentinelStatus.ERROR
 
-    level: int = logging.INFO if report.status is SentinelStatus.OK else logging.WARNING
+    # OK uses the dedicated SNTL level so it stands out; DRIFT stays WARNING.
+    level: int = SENTINEL if report.status is SentinelStatus.OK else logging.WARNING
     log.log(level=level, domain=domain, message=_format_report(domain, routine, file_path.name, report))
     return report.status

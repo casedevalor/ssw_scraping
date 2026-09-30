@@ -12,6 +12,11 @@ from typing import Deque
 # ---------------------------------------------------------------------------
 MAX_LOG_LINES: int = 1000
 
+# Custom level for the column sentinel's OK line (between INFO and WARNING),
+# so a successful column check stands out in the domain log as "SNTL".
+# DRIFT/ERROR results keep WARNING/ERROR so they still show up as problems.
+SENTINEL: int = 25
+
 # Lock to ensure file read/rewrite is atomic across threads
 _file_lock = threading.Lock()
 
@@ -25,6 +30,7 @@ _file_lock = threading.Lock()
 _LEVEL_NAME: dict = {
     logging.DEBUG:    "DBUG",
     logging.INFO:     "INFO",
+    SENTINEL:         "SNTL",
     logging.WARNING:  "WARN",
     logging.ERROR:    "ERRO",
     logging.CRITICAL: "CRIT",
@@ -36,11 +42,25 @@ _LEVEL_NAME: dict = {
 _ANSI: dict = {
     "DBUG": "\033[37m",   # White/Grey
     "INFO": "\033[36m",   # Cyan
+    "SNTL": "\033[32m",   # Green
     "WARN": "\033[33m",   # Yellow
     "ERRO": "\033[31m",   # Red
     "CRIT": "\033[35m",   # Magenta
     "RSET": "\033[0m",    # Reset
 }
+
+
+def _single_line(message: str) -> str:
+    """
+    Collapses a message to one line before it reaches the file.
+
+    Playwright errors carry a multi-line "=== logs ===" / "Call log:" block;
+    written as-is it breaks the one-entry-per-line file (and reads upside down,
+    since entries are prepended). Only the text before that block is kept.
+    """
+    for marker in ("\n=", "\nCall log:"):
+        message = message.split(marker, 1)[0]
+    return " ".join(message.split())
 
 
 class CustomLogger:
@@ -67,6 +87,7 @@ class CustomLogger:
         so every line in the log file is consistently aligned.
 
         :param level:   logging constant (logging.INFO, logging.ERROR, …)
+                        or SENTINEL for the column sentinel's OK line
         :param domain:  determines which .log file receives the entry
         :param message: text to record
         """
@@ -75,7 +96,7 @@ class CustomLogger:
         # entries use the same 4-char abbreviations as the terminal.
         level_name = _LEVEL_NAME.get(level, logging.getLevelName(level)[:4].upper())
         timestamp  = datetime.now().strftime(self._file_fmt)
-        log_entry  = f"{timestamp} - {level_name} - {message}"
+        log_entry  = f"{timestamp} - {level_name} - {_single_line(message)}"
 
         with _file_lock:
             try:
@@ -100,7 +121,7 @@ class CustomLogger:
         Does NOT write to any log file — terminal only.
 
         :param message: text to display
-        :param level:   one of DBUG | INFO | WARN | ERRO | CRIT
+        :param level:   one of DBUG | INFO | SNTL | WARN | ERRO | CRIT
                         defaults to INFO
 
         Usage:

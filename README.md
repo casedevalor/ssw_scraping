@@ -59,7 +59,7 @@ Every `app/routines/bot_XXX.py` follows the same shape (full rules in `CLAUDE.md
 1. **`run()`** opens Chromium, logs in (`perform_login`) and opens the routine's popup, racing it against the menu error label — a routine that is `"Opção não liberada"` for the domain never opens a popup.
 2. **`handler_download()`** loops over the routine's items (date ranges, dates, units or options). Each item is handled by one function — `_process_date_range`, `_process_date`, `_process_unit_range` or `_process_option` — so a failure in one item is logged as one `ERROR` line and the next item still runs. Only when **every** item failed is the error re-raised.
 3. Inside each item, the form is filled and the outcome is **raced**: file download vs. SSW message (with a 60 s timeout). Screens that queue the report go through **screen 156** (`app/core/downloads.py → process_156_report`), which waits for it (up to 120 refreshes × 4 s), downloads, processes and uploads it.
-4. Before every upload, the **Column Sentinel** checks the file's header and writes one line to the domain log. It never blocks the upload.
+4. Each item first logs its dates (`Start Dates: [...]`, or `Start Date: [...]` for per-day routines); right after every upload, the **Column Sentinel** checks the file's header and writes one line to the domain log, closing that file's block. It never blocks or undoes the upload.
 5. **`main()`** retries `run()` up to 3 times (5 s apart) and stops early on `"Opção não liberada"`. At the end it always uploads the domain log and sends `output/downloads/<ROUTINE>/` to the trash.
 
 ---
@@ -117,8 +117,8 @@ Routines not in any workflow (019, 056, 073, 076, 119, 322, 324, 442, 452, 455F,
 - Column Sentinel lines look like:
 
   ```text
-  INFO - TEC SENTINEL | 002 | 2026-09-TEC-002.csv | Columns: 40 found / 40 expected | OK
-  WARN - TEC SENTINEL | 002 | 2026-09-TEC-002.csv | Columns: 41 found / 40 expected (+1) | DRIFT | ADDED: [G] 'NOVA'
+  SNTL - TEC SENTINEL 002 | 2026-09-TEC-002.csv | Columns: 40 found / 40 expected | OK
+  WARN - TEC SENTINEL 002 | 2026-09-TEC-002.csv | Columns: 41 found / 40 expected (+1) | DRIFT | ADDED: [G] 'NOVA'
   ```
 
 - Downloads land in `output/downloads/<ROUTINE>/` and are sent to the OS trash at the end of each run.

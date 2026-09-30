@@ -293,9 +293,11 @@ async def _process_date(
     await loop.run_in_executor(
         None, lambda: pd.DataFrame(rows).to_excel(full_file_path, index=False)
     )
-    # The header comes from DETAIL_COLUMNS, so this check is dormant today
-    # (see config/sentinel/458.yml). Logs one line, never blocks the upload.
-    check_file(full_file_path, ROUTINE, domain)
+    log.log(
+        level=logging.INFO,
+        domain=domain,
+        message=f"{domain} ROUTINE {ROUTINE} | {len(rows)} row(s) scraped",
+    )
 
     await upload_report_file(
         file_name=file_name,
@@ -304,14 +306,10 @@ async def _process_date(
         attempt=attempt,
         max_attempts=max_attempts,
     )
-    log.log(
-        level=logging.INFO,
-        domain=domain,
-        message=(
-            f"{domain} ROUTINE {ROUTINE} | [{start_date} → {end_date}] "
-            f"{len(rows)} row(s) scraped, built and uploaded successfully."
-        ),
-    )
+    # The header comes from DETAIL_COLUMNS, so this check is dormant today
+    # (see config/sentinel/458.yml). Runs after the upload so its line closes
+    # this file's block in the log; never raises.
+    check_file(full_file_path, ROUTINE, domain)
 
 
 async def handler_download(
@@ -336,6 +334,11 @@ async def handler_download(
     failures: int = 0
 
     for date in dates_to_process:
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Start Date: [{date}]",
+        )
         popup: Page = await _open_routine_popup(page)
         try:
             await _process_date(popup, domain, date, attempt, max_attempts)
@@ -433,38 +436,38 @@ async def main() -> None:
                         log.log(
                             level=logging.INFO,
                             domain=settings.ssw_domain,
-                            message=f"Attempt {attempt} failed. Retrying in 5s...",
+                            message=f"{settings.ssw_domain} ROUTINE {ROUTINE} | Attempt {attempt} failed. Retrying in 5s...",
                         )
                         await asyncio.sleep(5)
     finally:
         # Runs exactly once, regardless of how many attempts happened or
-        # how the routine ended.
-        log.log(
-            level=logging.INFO,
-            domain=settings.ssw_domain,
-            message=f"INFO - {ROUTINE} - Main routine completed. Starting final cleanup...",
-        )
+        # how the routine ended. The "completed" line goes last on purpose:
+        # nothing this run logs may come after it.
+        domain: str = settings.ssw_domain
 
-        # A SharePoint hiccup here shouldn't mask the routine's real result.
-        try:
-            log.debug(f"Sending final log to SharePoint for {ROUTINE}...")
-            await asyncio.get_event_loop().run_in_executor(
-                None, lambda: upload_log_file(domain=settings.ssw_domain)
-            )
-        except Exception as e_log:
-            log.log(
-                level=logging.ERROR,
-                domain=settings.ssw_domain,
-                message=f"CRITICAL ERROR: Failed to send final log for {ROUTINE}: {e_log}",
-            )
-
-        # Same reasoning: a cleanup failure is logged, not raised.
+        # A cleanup failure is logged, not raised.
         try:
             log.debug(f"Cleaning up downloads for {ROUTINE}...")
             GarbageCollector().delete(cwd / "output" / "downloads" / ROUTINE)
         except Exception as e_gc:
             log.log(
                 level=logging.WARNING,
-                domain=settings.ssw_domain,
-                message=f"WARNING - {ROUTINE} - Failed to clean downloads: {e_gc}",
+                domain=domain,
+                message=f"{domain} ROUTINE {ROUTINE} | Failed to clean downloads: {e_gc}",
             )
+
+        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # upload_log_file() logs its own success/failure line.
+        try:
+            log.debug(f"Sending final log to SharePoint for {ROUTINE}...")
+            await asyncio.get_event_loop().run_in_executor(
+                None, lambda: upload_log_file(domain=domain, routine=ROUTINE)
+            )
+        except Exception as e_log:
+            log.debug(f"{domain} ROUTINE {ROUTINE} | Final log upload failed: {e_log}", level="ERRO")
+
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Main routine completed.",
+        )

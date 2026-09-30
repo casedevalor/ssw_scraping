@@ -3,12 +3,23 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+from config.settings.variables import settings
 from app.utils.custom_logger import get_logger
 from app.integrations.sharepoint import get_sharepoint_client
 
 log = get_logger()
 
 cwd = Path.cwd()
+
+
+def _tenant() -> str:
+    """
+    Tenant prefix of the SharePoint host (e.g. "softweb268" from
+    "softweb268.sharepoint.com"), shown in front of every remote folder in the
+    log so whoever reads it knows which SharePoint the file went to — each
+    company copy may point at a different tenant.
+    """
+    return settings.sharepoint_domain_name.split(".")[0]
 
 
 def _resolve_remote_folder(routine: str, domain: str, report: Optional[str]) -> str:
@@ -77,7 +88,7 @@ async def upload_report_file(
             domain=domain,
             message=(
                 f"{domain} ROUTINE {routine} | "
-                f"'{file_name}' uploaded to '{base_remote_folder}' "
+                f"'{file_name}' uploaded to '{_tenant()}/{base_remote_folder}' "
                 f"- attempt {attempt}/{max_attempts}."
             ),
         )
@@ -88,28 +99,32 @@ async def upload_report_file(
             domain=domain,
             message=(
                 f"{domain} ROUTINE {routine} | "
-                f"Upload failed for '{file_name}' to '{base_remote_folder}': {e} "
+                f"Upload failed for '{file_name}' to '{_tenant()}/{base_remote_folder}': {e} "
                 f"- attempt {attempt}/{max_attempts}."
             ),
         )
         raise
 
 
-def upload_log_file(domain: str) -> None:
+def upload_log_file(domain: str, routine: Optional[str] = None) -> None:
     """
     Uploads the domain log file to the BOTLOGS folder in SharePoint.
+
+    `routine` only tags the log lines written here (`<DOMAIN> ROUTINE <routine> | ...`),
+    so they follow the same pattern as the rest of the run.
 
     If the log file does not exist, logs a warning and returns without raising.
     Upload failures are logged and re-raised so the caller is aware.
     """
     local_path  = cwd / "output" / "logs" / f"{domain}.log"
     remote_folder = "Banco_de_Dados/BOTLOGS"
+    prefix: str = f"{domain} ROUTINE {routine} | " if routine else f"{domain} | "
 
     if not local_path.is_file():
         log.log(
             level=logging.WARNING,
             domain=domain,
-            message=f"Log file not found: {local_path}. Skipping upload.",
+            message=f"{prefix}Log file '{domain}.log' not found. Skipping upload.",
         )
         return
 
@@ -125,9 +140,7 @@ def upload_log_file(domain: str) -> None:
         log.log(
             level=logging.INFO,
             domain=domain,
-            message=(
-                f"Log file '{domain}.log' uploaded to '{remote_folder}'."
-            ),
+            message=f"{prefix}Log file '{domain}.log' uploaded to '{_tenant()}/{remote_folder}'.",
         )
 
     except Exception as e:
@@ -135,6 +148,6 @@ def upload_log_file(domain: str) -> None:
         log.log(
             level=logging.ERROR,
             domain=domain,
-            message=f"CRITICAL: Failed to upload log file '{domain}.log': {e}",
+            message=f"{prefix}Failed to upload log file '{domain}.log' to '{_tenant()}/{remote_folder}': {e}",
         )
         raise

@@ -39,7 +39,7 @@ flowchart TD
     C --> D[Fill dates + field E/F]
     D --> E[Click ►]
     E --> F["Click '1. Abrir a opção 156 agora' (always routes to 156)"]
-    F --> G[process_156_report: download, check columns, upload]
+    F --> G[process_156_report: download, upload, check columns]
     G --> C
     C -.->|all ranges failed| H[RuntimeError]
 ```
@@ -83,26 +83,26 @@ The 455 menu is shared between the ABH, CGK, and F variants — the routine fiel
 - Up to **3 attempts** (`MAX_ATTEMPTS`), with `5s` between them.
 - Standard multi-range loop: `handler_download` runs `_process_date_range` once per date range; a failure is logged as one `ERROR` line and the next date range still runs. The attempt only fails (and `main()` retries) when **every** date range failed.
 - Aborts before the 3rd attempt if the message is `MSG_NOT_RELEASED`.
-- Single cleanup at the end: domain log upload + `GarbageCollector` on `output/downloads/455F/`.
+- Single cleanup at the end: `GarbageCollector` on `output/downloads/455F/`, then the domain log upload, then the `Main routine completed.` line — always the last line of the run.
 
 ---
 
 ## 🛡️ Column Sentinel
 
-Every downloaded file is checked against a fixed column baseline before the upload. The result is **one line in the domain log** — the upload always proceeds (see [column_sentinel.md](./column_sentinel.md)).
+Every downloaded file is checked against a fixed column baseline right after the upload. The result is **one line in the domain log**, which closes that file's block — it never raises and never affects the upload (see [column_sentinel.md](./column_sentinel.md)).
 
 | Baseline | Columns | Header |
 | --- | --- | --- |
 | `config/sentinel/455F.yml` | 90 | auto-detected |
 
-- **Where it runs:** `downloads.py → process_156_report`, right after the file is saved (`_handle_455F`, no processor) and before the upload — covered automatically because the baseline exists; no hook in the bot.
+- **Where it runs:** `downloads.py → process_156_report`, right after the file is saved (`_handle_455F`, no processor) and after the upload — covered automatically because the baseline exists; no hook in the bot.
 - **Processing before the check:** None — the raw SSW file is checked, exactly as it is uploaded.
 - **Note:** SSW ends every line with `;`, which produces an empty 91st column; it is ignored, so the baseline lists 90.
 
 Log line when the layout is intact:
 
 ```
-INFO - TEC SENTINEL | 455F | 2026-09-TEC-455F.csv | Columns: 90 found / 90 expected | OK
+SNTL - TEC SENTINEL 455F | 2026-09-TEC-455F.csv | Columns: 90 found / 90 expected | OK
 ```
 
 Any change shows up as `DRIFT` with `ADDED` / `REMOVED` / `RENAMED` / `MOVED` and the Excel column letter; a broken baseline shows up as `ERROR`.

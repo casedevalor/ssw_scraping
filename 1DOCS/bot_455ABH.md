@@ -37,7 +37,7 @@ flowchart TD
     C --> D[Fill dates + fields E/A/B/H]
     D --> E[Click ►]
     E --> F["Click '1. Abrir a opção 156 agora' (always routes to 156)"]
-    F --> G["process_156_report: download → processing_csv_455ABH → check columns → upload"]
+    F --> G["process_156_report: download → processing_csv_455ABH → upload → check columns"]
     G --> C
     C -.->|all ranges failed| H[RuntimeError]
 ```
@@ -85,26 +85,26 @@ This routine does not interpret intermediate screen messages — the only expect
 - Up to **3 attempts** (`MAX_ATTEMPTS`), with `5s` between them.
 - Standard multi-range loop: `handler_download` runs `_process_date_range` once per date range; a failure is logged as one `ERROR` line and the next date range still runs. The attempt only fails (and `main()` retries) when **every** date range failed.
 - Aborts before the 3rd attempt if the message is `MSG_NOT_RELEASED`.
-- Single cleanup at the end: domain log upload + `GarbageCollector` on `output/downloads/455ABH/`.
+- Single cleanup at the end: `GarbageCollector` on `output/downloads/455ABH/`, then the domain log upload, then the `Main routine completed.` line — always the last line of the run.
 
 ---
 
 ## 🛡️ Column Sentinel
 
-Every downloaded file is checked against a fixed column baseline before the upload. The result is **one line in the domain log** — the upload always proceeds (see [column_sentinel.md](./column_sentinel.md)).
+Every downloaded file is checked against a fixed column baseline right after the upload. The result is **one line in the domain log**, which closes that file's block — it never raises and never affects the upload (see [column_sentinel.md](./column_sentinel.md)).
 
 | Baseline | Columns | Header |
 | --- | --- | --- |
 | `config/sentinel/455ABH.yml` | 118 | line 2 (line 1 is the SSW title) |
 
-- **Where it runs:** `downloads.py → process_156_report`, right after `processing_csv_455ABH` and before `upload_report_file(...)`.
+- **Where it runs:** `downloads.py → process_156_report`, right after `processing_csv_455ABH` and after `upload_report_file(...)`.
 - **Processing before the check:** `processing_csv_455ABH` runs **first** — it renames known SSW changes (`Base Calculo ICMS/ISS` → `Base de Calculo`, `Complemento da Ultima Ocorrencia` → `Descricao da Ultima Ocorrencia`) and drops `Unnamed` columns. The baseline describes that processed file (the layout Power BI expects), so known renames never raise an alert.
 - **Note:** Column 1 (`'1'`) is the SSW row counter and is part of the baseline. A new SSW rename is fixed in `processing_csv_455ABH`, not in the YAML.
 
 Log line when the layout is intact:
 
 ```
-INFO - RPV SENTINEL | 455ABH | 2026-09-RPV-455ABH.csv | Columns: 118 found / 118 expected | OK
+SNTL - RPV SENTINEL 455ABH | 2026-09-RPV-455ABH.csv | Columns: 118 found / 118 expected | OK
 ```
 
 Any change shows up as `DRIFT` with `ADDED` / `REMOVED` / `RENAMED` / `MOVED` and the Excel column letter; a broken baseline shows up as `ERROR`.

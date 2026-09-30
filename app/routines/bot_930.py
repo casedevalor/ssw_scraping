@@ -78,7 +78,7 @@ async def _process_date(
     routes accordingly — the response is always checked for an error modal
     ("Nenhum registro encontrado") before clicking "Abrir a opção 156 agora",
     since not every date is routed to screen 156. On screen 156,
-    process_156_report() downloads the file, checks its columns and uploads it.
+    process_156_report() downloads the file, uploads it and then checks its columns.
 
     Raises:
         TimeoutError: When no message appears within 60 s.
@@ -146,14 +146,6 @@ async def _process_date(
                 page2, date, ROUTINE, domain, attempt, max_attempts
             )
             # NOTE: page2 is closed inside process_156_report's finally block.
-            log.log(
-                level=logging.INFO,
-                domain=domain,
-                message=(
-                    f"{domain} ROUTINE {ROUTINE} | "
-                    f"[{date}] Processed via screen 156."
-                ),
-            )
         return
 
     # ------------------------------------------------------------------
@@ -196,6 +188,11 @@ async def handler_download(
     failures: int = 0
 
     for date in dates_to_process:
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Start Date: [{date}]",
+        )
         try:
             await _process_date(page, domain, date, attempt, max_attempts)
         except Exception as e_date:
@@ -332,38 +329,38 @@ async def main() -> None:
                         log.log(
                             level=logging.INFO,
                             domain=settings.ssw_domain,
-                            message=f"Attempt {attempt} failed. Retrying in 5s...",
+                            message=f"{settings.ssw_domain} ROUTINE {ROUTINE} | Attempt {attempt} failed. Retrying in 5s...",
                         )
                         await asyncio.sleep(5)
     finally:
         # Runs exactly once, regardless of how many attempts happened or
-        # how the routine ended.
-        log.log(
-            level=logging.INFO,
-            domain=settings.ssw_domain,
-            message=f"INFO - {ROUTINE} - Main routine completed. Starting final cleanup...",
-        )
+        # how the routine ended. The "completed" line goes last on purpose:
+        # nothing this run logs may come after it.
+        domain: str = settings.ssw_domain
 
-        # A SharePoint hiccup here shouldn't mask the routine's real result.
-        try:
-            log.debug("Sending final log to SharePoint...")
-            await asyncio.get_event_loop().run_in_executor(
-                None, lambda: upload_log_file(domain=settings.ssw_domain)
-            )
-        except Exception as e_log:
-            log.log(
-                level=logging.ERROR,
-                domain=settings.ssw_domain,
-                message=f"CRITICAL ERROR: Failed to send final log for {ROUTINE}: {e_log}",
-            )
-
-        # Same reasoning: a cleanup failure is logged, not raised.
+        # A cleanup failure is logged, not raised.
         try:
             log.debug(f"Cleaning up downloads for {ROUTINE}...")
             GarbageCollector().delete(cwd / "output" / "downloads" / ROUTINE)
         except Exception as e_gc:
             log.log(
                 level=logging.WARNING,
-                domain=settings.ssw_domain,
-                message=f"WARNING - {ROUTINE} - Failed to clean downloads: {e_gc}",
+                domain=domain,
+                message=f"{domain} ROUTINE {ROUTINE} | Failed to clean downloads: {e_gc}",
             )
+
+        # A SharePoint hiccup here shouldn't mask the routine's real result.
+        # upload_log_file() logs its own success/failure line.
+        try:
+            log.debug(f"Sending final log to SharePoint for {ROUTINE}...")
+            await asyncio.get_event_loop().run_in_executor(
+                None, lambda: upload_log_file(domain=domain, routine=ROUTINE)
+            )
+        except Exception as e_log:
+            log.debug(f"{domain} ROUTINE {ROUTINE} | Final log upload failed: {e_log}", level="ERRO")
+
+        log.log(
+            level=logging.INFO,
+            domain=domain,
+            message=f"{domain} ROUTINE {ROUTINE} | Main routine completed.",
+        )
