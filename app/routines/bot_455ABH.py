@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
 
@@ -38,21 +39,35 @@ SEL_BTN_OK = "7. OK"
 # ---------------------------------------------------------------------------
 MSG_NOT_RELEASED = "Opção não liberada"
 
+# ---------------------------------------------------------------------------
+# Weekend 12-month backfill gate (see _build_date_ranges)
+# ---------------------------------------------------------------------------
+BACKFILL_WEEKDAY: int = 5  # datetime.weekday(): Monday=0 ... Sunday=6 (Saturday)
+BACKFILL_HOUR: int = 15
+
 
 def _build_date_ranges() -> List[Tuple[str, str]]:
     """
-    Always returns the previous month (full) and the current month (to
-    date) — two ranges, every run.
+    Picks the date ranges for this run:
 
-    NOTE: no day/hour gate. This routine belongs to the "always backfill
-    last month" group whose helper is a one-to-one wrap of
-    Dates().previous_and_current_month_ranges(): bot_002, bot_036, bot_073,
-    bot_076, bot_119, bot_200, bot_324, bot_411, bot_442, bot_452,
-    bot_455ABH, bot_455CGK, bot_455F, bot_467 and bot_493. Don't add a gate
-    here without an explicit business request.
+    - Saturday at BACKFILL_HOUR: the last 12 full calendar months (current
+      month excluded) — the weekly backfill run fired by wf_weekend.py.
+    - Any other day/hour: the previous month (full) and the current month
+      (to date) — two ranges, as in every other run.
 
-    :return: [(previous_month_start, previous_month_end), (current_month_start, today)]
+    NOTE: this routine has its own day + hour gate, so it is not in the
+    "always backfill last month" group (see bot_002.py). The gate was
+    requested by the user on 2026-10-12 (455ABH on Saturday, 455CGK on
+    Sunday, 455F on Saturday, all at 15h). The hour must match the cron
+    time of WF_WE in this company's scheduler; change BACKFILL_HOUR here
+    if that time differs.
+
+    :return: 12 monthly ranges on the backfill run, otherwise
+        [(previous_month_start, previous_month_end), (current_month_start, today)]
     """
+    now: datetime = datetime.now()
+    if now.weekday() == BACKFILL_WEEKDAY and now.hour == BACKFILL_HOUR:
+        return Dates().previous_twelve_months_ranges()
     return Dates().previous_and_current_month_ranges()
 
 
@@ -104,7 +119,8 @@ async def handler_download(
 ) -> None:
     """
     Runs _process_date_range() once per range from _build_date_ranges()
-    (previous month + current month to date).
+    (previous month + current month to date, or the last 12 full months on
+    the weekend backfill run).
 
     Each range is isolated — a failure in one does not stop the next — but
     if every range fails the error is re-raised so main()'s retry loop
@@ -160,7 +176,7 @@ async def run(playwright: Playwright, attempt: int, max_attempts: int) -> None:
         await perform_login(page, ROUTINE)
         await page.wait_for_timeout(1000)
 
-        # Navigate to routine 455 (shared screen for 455ABH and 455CGK)
+        # Navigate to routine 455 (shared screen for 455ABH/455CGK/455F)
         await page.locator(SEL_ROUTINE_INPUT).fill("455")
         await page.wait_for_timeout(250)
 

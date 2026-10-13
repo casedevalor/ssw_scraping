@@ -40,9 +40,9 @@ Todas as datas retornadas são strings no formato **`'ddmmyy'`** (ex.: `15/03/20
 
 | Método | Retorna | Ordem | Usado por | Status |
 | --- | --- | --- | --- | --- |
-| `previous_and_current_month_ranges()` | `[mês anterior completo, mês atual até hoje]` — sempre os dois, sem gate | cronológica | `bot_002`, `bot_036`, `bot_073`, `bot_076`, `bot_119`, `bot_200`, `bot_324`, `bot_411`, `bot_442`, `bot_452`, `bot_455ABH`, `bot_455CGK`, `bot_455F`, `bot_467`, `bot_493` | Ativo |
+| `previous_and_current_month_ranges()` | `[mês anterior completo, mês atual até hoje]` — sempre os dois, sem gate (nas 455, fora do backfill de fim de semana) | cronológica | `bot_002`, `bot_036`, `bot_073`, `bot_076`, `bot_119`, `bot_200`, `bot_324`, `bot_411`, `bot_442`, `bot_452`, `bot_467`, `bot_493` | Ativo |
 | `last_three_months_ranges()` | 2 meses completos anteriores + mês atual até hoje (3 no total) | cronológica (mais antigo primeiro) | `bot_103` | Ativo |
-| `previous_twelve_months_ranges()` | 12 meses completos anteriores — **exclui** o mês atual | cronológica | — | **Morto** — antes usado pelo backfill de fim de semana das rotinas 455; hoje elas usam `previous_and_current_month_ranges()` |
+| `previous_twelve_months_ranges()` | 12 meses completos anteriores — **exclui** o mês atual | cronológica | `bot_455ABH` (sáb 15h), `bot_455CGK` (dom 15h), `bot_455F` (sáb 15h) | Ativo — backfill de fim de semana das 455 (gate de dia + `BACKFILL_HOUR`); fora desse horário elas usam `previous_and_current_month_ranges()` |
 | `previous_and_current_fortnight_ranges()` | `[quinzena anterior completa, quinzena atual até hoje]` | cronológica | `bot_306` | Ativo |
 | `previous_and_current_year_ranges()` | `[ano anterior completo, ano atual até hoje]` — sempre os dois, sem gate | cronológica | `bot_322` | Ativo |
 | `last_three_years_to_date_ranges()` | 2 anos-calendário completos + ano atual **até hoje** | cronológica | `bot_441`, `bot_477` | Ativo |

@@ -6,7 +6,7 @@ Automation for generating and uploading the report for routine **455** (F varian
 
 ## 📌 Objective
 
-Run routine 455 filtering for the F variant (a single field filled with `F`, unlike ABH's `A`/`B`/`H` or CGK's `C`/`G`/`K`), delegating each report to screen 156. Every run processes two periods — the previous month and the current month to date — same as [455ABH](./bot_455ABH.md).
+Run routine 455 filtering for the F variant (a single field filled with `F`, unlike ABH's `A`/`B`/`H` or CGK's `C`/`G`/`K`), delegating each report to screen 156. Every run processes the previous month and the current month to date, except the Saturday 15h run, which backfills the last 12 full months — same as [455ABH](./bot_455ABH.md).
 
 **Not yet wired into any workflow by default.** A commented-out call exists in `wf_weekend.py`'s Saturday block (alongside 455ABH) — enable it only for the specific domain(s) that requested this variant; it is not part of the standard weekend run.
 
@@ -18,11 +18,12 @@ The periods are decided in `_build_date_ranges()`:
 
 | Condition | Periods processed | Function |
 | --- | --- | --- |
-| Always | Previous month (full) **and** current month up to today | `Dates().previous_and_current_month_ranges()` |
+| **Saturday** and hour == `BACKFILL_HOUR` (15h) | Last **12 full months** (current month excluded) | `Dates().previous_twelve_months_ranges()` |
+| Any other day/hour | Previous month (full) **and** current month up to today | `Dates().previous_and_current_month_ranges()` |
 
-No day/hour gate and no weekend-specific backfill: this routine belongs to the "always backfill last month" group (002, 036, 073, 076, 119, 200, 324, 411, 442, 452, 455ABH, 455CGK, 455F, 467 and 493), whose date helper is a one-to-one wrap of `Dates().previous_and_current_month_ranges()`.
+Weekend backfill gate (user request, 2026-10-12): `BACKFILL_WEEKDAY` / `BACKFILL_HOUR` are module constants in `bot_455F.py` (Saturday, 15h). The hour must match the cron time of `WF_WE` in that company's `scripts/scheduler.sh` — if the workflow fires at another hour, the gate never matches and the run falls back to the two monthly ranges. Because of this gate, the routine is not in the "always backfill last month" group (002, 036, 073, 076, 119, 200, 324, 411, 442, 452, 467 and 493).
 
-Each range is isolated — a failure in one does not stop the other — but if **every** range fails, the failure is re-raised so `main()`'s retry loop still engages. The 455 popup is opened **once** and reused for both ranges.
+Each range is isolated — a failure in one does not stop the other — but if **every** range fails, the failure is re-raised so `main()`'s retry loop still engages. The 455 popup is opened **once** and reused for every range.
 
 ---
 
@@ -34,7 +35,11 @@ flowchart TD
     B --> C0{popup or #errormsglabel?}
     C0 -->|timeout 10s| Z1[TimeoutError]
     C0 -->|error| Z2[Log ERROR, abort attempt]
-    C0 -->|popup, opened once| C[handler_download: for each date range]
+    C0 -->|popup, opened once| G0{"Saturday and hour == 15?"}
+    G0 -->|yes| R12[12 full months]
+    G0 -->|no| R2[previous + current month]
+    R12 --> C[handler_download: for each date range]
+    R2 --> C
     C -.->|every range failed| ZF[RuntimeError → main retries]
     C --> D[Fill dates + field E/F]
     D --> E[Click ►]

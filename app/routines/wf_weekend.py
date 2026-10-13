@@ -20,10 +20,12 @@ async def main():
     """
     Main function of WORKFLOW 455 Weekend.
     It decides which routine to run based on the day of the week: Saturday
-    runs bot_455ABH.py, Sunday runs bot_455CGK.py. Each bot uses the same
-    previous-month + current-month ranges as on weekdays (no weekend-specific
-    backfill). bot_455F.py is disabled by default (see the commented-out call
-    below) — enable only in domains that requested it.
+    runs bot_455ABH.py, Sunday runs bot_455CGK.py. The 12-month backfill is
+    decided inside each bot (_build_date_ranges: its weekday + BACKFILL_HOUR,
+    15h by default), so the cron time of WF_WE must match that hour — at any
+    other hour the bots fall back to previous month + current month.
+    bot_455F.py is disabled by default (see the commented-out call below) —
+    enable only in domains that requested it.
     """
     # weekday() -> Monday=0, Sunday=6
     weekday = datetime.now().weekday()

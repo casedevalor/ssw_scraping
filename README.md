@@ -28,9 +28,9 @@ Automations that extract reports from the **SSW** transport-management system, b
 | [441](./1DOCS/bot_441.md) | Invoices | Last 3 years (one range per year) | Direct or screen 156 | `.csv` per year (processed) | 💤 dormant | WF_ALL |
 | [442](./1DOCS/bot_442.md) | Credits/debits | Previous + current month | Direct | `.csv` | ✅ | — |
 | [452](./1DOCS/bot_452.md) | Liquidated freight | Previous + current month | Direct | `.csv` (title lines dropped) | ✅ | — |
-| [455ABH](./1DOCS/bot_455ABH.md) | 455, variant ABH | Previous + current month | Screen 156 | `.csv` (processed) | ✅ | WF_DAILY, WF_ALL, WF_WE (Sat) |
-| [455CGK](./1DOCS/bot_455CGK.md) | 455, variant CGK | Previous + current month | Screen 156 | `.csv` (processed) | 💤 dormant | WF_DAILY, WF_ALL, WF_WE (Sun) |
-| [455F](./1DOCS/bot_455F.md) | 455, variant F | Previous + current month | Screen 156 | `.csv` | ✅ | — (disabled in WF_WE; enable per domain) |
+| [455ABH](./1DOCS/bot_455ABH.md) | 455, variant ABH | Previous + current month; 12 full months on Sat 15h | Screen 156 | `.csv` (processed) | ✅ | WF_DAILY, WF_ALL, WF_WE (Sat) |
+| [455CGK](./1DOCS/bot_455CGK.md) | 455, variant CGK | Previous + current month; 12 full months on Sun 15h | Screen 156 | `.csv` (processed) | 💤 dormant | WF_DAILY, WF_ALL, WF_WE (Sun) |
+| [455F](./1DOCS/bot_455F.md) | 455, variant F | Previous + current month; 12 full months on Sat 15h | Screen 156 | `.csv` | ✅ | — (disabled in WF_WE; enable per domain) |
 | [458](./1DOCS/bot_458.md) | Bank-balance snapshot | Yesterday + today (one search per day) | Scraped from the screen (no file) | `.xlsx` per day | 💤 dormant | — (enable per domain) |
 | [467](./1DOCS/bot_467.md) | Clients | Previous + current month | Screen 156 | `.csv` | ✅ | WF_ALL |
 | [477](./1DOCS/bot_477.md) | Expenses | Last 3 years (one range per year) | Direct (after prompt) or screen 156 | `.csv` per year | ✅ | WF_ALL |

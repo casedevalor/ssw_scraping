@@ -45,9 +45,9 @@ def _build_date_ranges() -> List[Tuple[str, str]]:
     NOTE: no day/hour gate. This routine belongs to the "always backfill
     last month" group whose helper is a one-to-one wrap of
     Dates().previous_and_current_month_ranges(): bot_002, bot_036, bot_073,
-    bot_076, bot_119, bot_200, bot_324, bot_411, bot_442, bot_452,
-    bot_455ABH, bot_455CGK, bot_455F, bot_467 and bot_493. Don't add a gate
-    here without an explicit business request.
+    bot_076, bot_119, bot_200, bot_324, bot_411, bot_442, bot_452, bot_467
+    and bot_493. Don't add a gate here without an explicit business request
+    (bot_455ABH/455CGK/455F left the group for their weekend backfill gate).
 
     :return: [(previous_month_start, previous_month_end), (current_month_start, today)]
     """
