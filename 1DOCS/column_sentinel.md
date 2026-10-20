@@ -90,6 +90,8 @@ A routine **without** a baseline file is simply not checked — no error, no log
 | 467 | `467.yml` | 100 | auto-detect | none (raw file) | `downloads.py` (156) |
 | 477 | `477.yml` | 43 | auto-detect | none (raw file) | `bot_477.py` (direct) + `downloads.py` (156) |
 | 493 | `493.yml` | 49 | auto-detect | none (raw file) | `downloads.py` (156) |
+| 916 | `916-MANIFESTO.yml` | 20 | 2 | none (raw file) | `downloads.py` (156) — same file as `916-CTRC` |
+| 916 | `916-CTRC.yml` | 14 | 3 | none (raw file) | `downloads.py` (156) — same file as `916-MANIFESTO` |
 | 930 | `930.yml` | 24 | auto-detect | none (raw file) | `downloads.py` (156) — one check per date |
 
 Notes:
@@ -98,6 +100,12 @@ Notes:
   and `073-TERCEIROS` by the `frota`/`terceiro` suffix inside the zip, and each
   one is checked against the baseline with that same name. The single-csv
   fallback (no zip) is named `073` and has no baseline, so it is not checked.
+- **916** delivers one file with **two header bands**: line 2 is the manifest
+  header (data lines `3`), line 3 the CTRC header (data lines `4`). Each band has
+  its own baseline, and `SENTINEL_BASELINES` in `downloads.py` checks both against
+  the same file — two lines per file. Columns Q..T of the manifest header are
+  totals delivered as `label: value` (`qtde_ctrc:  2077`), so `916-MANIFESTO.yml`
+  sets `label_separator: ':'` and only the label is compared.
 - **019**, **076** and **081** produce one file per unit (076: per unit and month), so
   they write one sentinel line per file. 076 alone can write ~70 lines per run.
 - **455CGK** header is on line 1 because its processing drops the SSW title line.
@@ -165,6 +173,7 @@ columns:
 | `header_line` | Optional. 1-based line that holds the header. When omitted, the sentinel picks the line (within the first 10) sharing the most names with the baseline — a title line above the header needs no config. |
 | `delimiter` | CSV separator. SSW uses `;`. Ignored for `.xlsx` files (119/324/458), which are read from the first sheet. |
 | `encoding` | File encoding. SSW uses `windows-1252`. Ignored for `.xlsx` files. |
+| `label_separator` | Optional. Header cells shaped `label<separator> value` are compared by the label only (916's totals, `qtde_ctrc:  2077`). Omitted: every cell is compared as-is. |
 | `columns` | `position: 'exact name'`, **1-based**, same numbering as Excel (1 = A). |
 
 Rules — the baseline is validated when loaded; breaking one logs an `ERROR`
@@ -257,7 +266,7 @@ Errors are always a single line; library tracebacks are never written to the log
   `app/core/data_processing.py` (and, for 103/455CGK, `columns_103`/`columns_455CGK` in
   `config/settings/config.yml`) so the output matches what Power BI expects.
   The baseline stays the same.
-- **Raw-file routine (002, 019, 036, 073, 076, 081, 200, 306, 322, 411, 435, 442, 455F, 467, 477, 493, 930 — and 452, whose processing keeps every column):** update the baseline YAML
+- **Raw-file routine (002, 019, 036, 073, 076, 081, 200, 306, 322, 411, 435, 442, 455F, 467, 477, 493, 916, 930 — and 452, whose processing keeps every column):** update the baseline YAML
   (name, position or new line) and renumber if needed.
 
 Rule of thumb: **the baseline must equal the file that leaves processing** —
@@ -275,7 +284,8 @@ Baselines are **per company**: each company's project copy has its own
 1. Create `config/sentinel/<ROUTINE>.yml` with the columns (1-based).
 2. Hook the check right **after the upload** of the saved/processed file:
    - Routine downloads through screen 156 → nothing to do, `downloads.py` already checks
-     every routine that has a baseline.
+     every routine that has a baseline. A file with several header bands (916) gets one
+     baseline per band, listed in `SENTINEL_BASELINES` in `downloads.py`.
    - Routine downloads directly → in `bot_<ROUTINE>.py`:
      ```python
      from app.core.column_sentinel import check_file
@@ -325,9 +335,12 @@ Edit by hand (don't overwrite — the target file may have company-specific code
   `process_156_report`, right after the `upload_report_file(...)` that follows
   `file_name = await handler(...)`:
   ```python
-  if has_baseline(routine):
-      check_file(path_download / file_name, routine, domain)
+  for baseline_name in SENTINEL_BASELINES.get(routine, (routine,)):
+      if has_baseline(baseline_name):
+          check_file(path_download / file_name, baseline_name, domain)
   ```
+  with `SENTINEL_BASELINES` (right below `ROUTINE_HANDLERS`) mapping `"916"` to
+  `("916-MANIFESTO", "916-CTRC")`.
 - `bot_002.py`, `bot_019.py`, `bot_036.py`, `bot_076.py`, `bot_081.py`, `bot_200.py`, `bot_306.py`, `bot_322.py`, `bot_411.py`, `bot_435.py`, `bot_442.py`, `bot_477.py` — import `check_file`
   and add `check_file(path_download / file_name, ROUTINE, domain)` right after
   each `await upload_report_file(...)` that follows a `download.save_as(...)`.

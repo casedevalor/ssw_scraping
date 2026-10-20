@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 from playwright.async_api import BrowserContext, Dialog, Download, Locator, Page, Request
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
@@ -82,7 +82,7 @@ def _build_file_name(
     if routine == "324":
         return f"{year}-{month}-{domain}-{routine}.sswweb"
 
-    # Default: covers 455CGK, 455ABH, 455F, 493, 467 and any future routine
+    # Default: covers 455CGK, 455ABH, 455F, 467, 493, 916 and any future routine
     return f"{year}-{month}-{domain}-{routine}.{suffix}"
 
 
@@ -159,6 +159,10 @@ async def _handle_493(download: Download, date: str, domain: str, path: Path, un
     file_name = _build_file_name("493", date, domain)
     return await _save_and_process(download, file_name, path, processor=None)
 
+async def _handle_916(download: Download, date: str, domain: str, path: Path, unit: Optional[str]) -> str:
+    file_name = _build_file_name("916", date, domain)
+    return await _save_and_process(download, file_name, path, processor=None)
+
 async def _handle_930(download: Download, date: str, domain: str, path: Path, unit: Optional[str]) -> str:
     file_name = _build_file_name("930", date, domain)
     return await _save_and_process(download, file_name, path, processor=None)
@@ -183,7 +187,15 @@ ROUTINE_HANDLERS = {
     "467":    _handle_467,
     "477":    _handle_477,
     "493":    _handle_493,
+    "916":    _handle_916,
     "930":    _handle_930,
+}
+
+# Baselines checked per routine. By default it's the one named after the
+# routine (config/sentinel/<routine>.yml); a file with several header bands
+# has one baseline per band, all checked against the same file.
+SENTINEL_BASELINES: Dict[str, Tuple[str, ...]] = {
+    "916": ("916-MANIFESTO", "916-CTRC"),
 }
 
 
@@ -548,14 +560,16 @@ async def process_156_report(
             max_attempts=max_attempts,
         )
 
-        # 6. Column check for routines with a baseline (config/sentinel/<ROUTINE>.yml).
+        # 6. Column check for routines with a baseline (config/sentinel/<ROUTINE>.yml,
+        # or one per header band — see SENTINEL_BASELINES).
         # Runs AFTER processing on purpose — the processor already absorbs
         # known SSW renames (the layout Power BI expects), so the sentinel only
         # flags what is still unknown. It runs after the upload so its line
         # closes this file's block in the domain log; it only reads the local
         # copy (still on disk until main()'s cleanup) and never raises.
-        if has_baseline(routine):
-            check_file(path_download / file_name, routine, domain)
+        for baseline_name in SENTINEL_BASELINES.get(routine, (routine,)):
+            if has_baseline(baseline_name):
+                check_file(path_download / file_name, baseline_name, domain)
 
     finally:
         # Guarantees the page is closed whether we succeed or raise

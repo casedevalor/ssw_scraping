@@ -1,0 +1,47 @@
+# Column baseline for SSW routine 916 — manifest band (header line 2).
+#
+# This is the contract the column sentinel checks every downloaded file
+# against: position (1-based) -> exact header name. Any difference in
+# count, name or position is reported in the log.
+#
+# The 916 file ("BANCO_DE_DADOS_DO_MANIFESTO") has two header bands:
+#   line 1: title (company name, report name, timestamp) — not checked
+#   line 2: manifest header (this file) -> data lines starting with '3'
+#   line 3: CTRC header (916-CTRC.yml)  -> data lines starting with '4'
+# Both baselines are checked against the same file (downloads.py,
+# SENTINEL_BASELINES).
+#
+# Columns Q..T of this header carry the report totals as "label: value"
+# (e.g. 'qtde_ctrc:  2077'); label_separator makes the sentinel compare
+# only the label, since the value changes on every download.
+#
+# Routine 916 has no processing step: this is the raw SSW file, exactly
+# as it is uploaded (screen-156 path, checked by downloads.py).
+#
+# To accept a legitimate SSW change, update this file — never the code.
+routine: '916-MANIFESTO'
+header_line: 2
+delimiter: ';'
+encoding: 'windows-1252'
+label_separator: ':'
+columns:
+  1: '1'                    # band code of the manifest header (data lines carry '3')
+  2: 'sigla_manifesto'
+  3: 'numero_manifesto'
+  4: 'data_emissao'
+  5: 'unidade_origem'
+  6: 'unidade_destino'
+  7: 'placa_cavalo'
+  8: 'proprietario_cavalo'
+  9: 'placa_carreta'
+  10: 'cpf_motorista'
+  11: 'nome_motorista'
+  12: 'peso_total'
+  13: 'valor_total_mercadoria'
+  14: 'valor_total_frete'
+  15: 'sigla_ctrb/os'
+  16: 'numero_ctrb/os'
+  17: 'qtde_ctrc'              # total, delivered as 'qtde_ctrc: <n>'
+  18: 'tot_frete cif'          # total, delivered as 'tot_frete cif: <value>'
+  19: 'tot_frete fob'          # total, delivered as 'tot_frete fob: <value>'
+  20: 'tot_frete terc'         # total, delivered as 'tot_frete terc: <value>'

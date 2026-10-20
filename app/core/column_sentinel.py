@@ -42,6 +42,10 @@ class ColumnBaseline(BaseModel):
     header_line: Optional[int] = Field(default=None, ge=1)  # None -> auto-detect
     delimiter: str = ";"
     encoding: str = "windows-1252"
+    # Header cells shaped "label<separator> value" (e.g. 916's
+    # "qtde_ctrc:  2077") are compared by their label only — the value
+    # changes on every download. None compares every cell as-is.
+    label_separator: Optional[str] = None
     columns: Dict[int, str]
 
     @model_validator(mode="after")
@@ -202,6 +206,7 @@ def read_header(file_path: Path, baseline: ColumnBaseline) -> List[str]:
     With `header_line` set, that line is the header. Without it, the header
     is the line (within HEADER_SEARCH_LINES) sharing the most names with the
     baseline — so a title line above the header doesn't need configuring.
+    With `label_separator` set, every cell is cut down to its label first.
 
     :raises ValueError: When the header line is missing or can't be found.
     """
@@ -209,6 +214,11 @@ def read_header(file_path: Path, baseline: ColumnBaseline) -> List[str]:
     rows: List[List[str]] = [
         _clean_row(row) for row in _read_top_rows(file_path, baseline, search_lines)
     ]
+    if baseline.label_separator:
+        rows = [
+            [cell.split(baseline.label_separator, 1)[0].strip() for cell in row]
+            for row in rows
+        ]
 
     if baseline.header_line is not None:
         if len(rows) < baseline.header_line:

@@ -41,6 +41,7 @@ Todas as datas retornadas são strings no formato **`'ddmmyy'`** (ex.: `15/03/20
 | Método | Retorna | Ordem | Usado por | Status |
 | --- | --- | --- | --- | --- |
 | `previous_and_current_month_ranges()` | `[mês anterior completo, mês atual até hoje]` — sempre os dois, sem gate (nas 455, fora do backfill de fim de semana) | cronológica | `bot_002`, `bot_036`, `bot_073`, `bot_076`, `bot_119`, `bot_200`, `bot_324`, `bot_411`, `bot_442`, `bot_452`, `bot_467`, `bot_493` | Ativo |
+| `previous_and_current_month_to_yesterday_ranges()` | `[mês anterior completo, mês atual até **ontem**]` — hoje nunca entra; no dia 1 devolve só o mês anterior (o mês atual ainda não tem dia fechado) | cronológica | `bot_916` | Ativo (desde 20/10/2026) |
 | `last_three_months_ranges()` | 2 meses completos anteriores + mês atual até hoje (3 no total) | cronológica (mais antigo primeiro) | `bot_103` | Ativo |
 | `previous_twelve_months_ranges()` | 12 meses completos anteriores — **exclui** o mês atual | cronológica | `bot_455ABH` (sáb 15h), `bot_455CGK` (dom 15h), `bot_455F` (sáb 15h) | Ativo — backfill de fim de semana das 455 (gate de dia + `BACKFILL_HOUR`); fora desse horário elas usam `previous_and_current_month_ranges()` |
 | `previous_and_current_fortnight_ranges()` | `[quinzena anterior completa, quinzena atual até hoje]` | cronológica | `bot_306` | Ativo |

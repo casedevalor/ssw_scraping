@@ -36,6 +36,7 @@ Automations that extract reports from the **SSW** transport-management system, b
 | [477](./1DOCS/bot_477.md) | Expenses | Last 3 years (one range per year) | Direct (after prompt) or screen 156 | `.csv` per year | ✅ | WF_ALL |
 | [493](./1DOCS/bot_493.md) | Freight tables | Previous + current month | Screen 156 | `.csv` | ✅ | WF_ALL |
 | [571](./1DOCS/bot_571.md) | Pending items | Current year to date | Direct | `.sswweb` (as-is) | — not guarded | WF_ALL |
+| [916](./1DOCS/bot_916.md) | Manifest database (manifests + their CTRCs) | Previous month + current month to yesterday | Screen 156 | `.csv` | ✅ (one baseline per header band) | — |
 | [930](./1DOCS/bot_930.md) | Occurrences | Yesterday + today (one run per day) | Screen 156 | `.csv` per day | ✅ | WF_DAILY (every block), WF_ALL |
 
 **Column Sentinel legend:** ✅ real check of the SSW layout · 💤 dormant — the baseline exists and runs, but the processing (or the bot) forces the output header, so today it always logs `OK` · — not guarded / not evaluated. Details in [column_sentinel.md](./1DOCS/column_sentinel.md).

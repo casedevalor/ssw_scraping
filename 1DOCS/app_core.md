@@ -41,18 +41,18 @@ Internamente:
 3. **Baixa o arquivo** via `_download_report()`. O "Baixar" não é link de arquivo: é `ajaxEnvia('DOW<seq>')`, e o SSW **ignora o clique** com o alerta *"Ja existe uma requisicao em andamento."* (já existe uma requisição em andamento) se outra chamada AJAX da tela ainda estiver pendente — era essa a causa dos downloads que não começavam com o arquivo pronto (29/09/2026). Por isso `_click_and_catch_download()` só clica com a tela ociosa (sem requisição pendente + 1 s), e, se o alerta aparecer, espera a requisição pendente terminar e clica de novo (até `MAX_BUSY_RETRIES = 10`). Depois que "Baixar" aparece, **a tela nunca mais é atualizada** — um "Atualizar" dispararia justamente outra requisição. O download é escutado em qualquer página do navegador; se não começar em `DOWNLOAD_TIMEOUT_MS = 60_000`, loga um `WARN` e clica de novo, até `MAX_DOWNLOAD_CLICKS = 4` vezes.
 4. **Nomeia e processa** via `ROUTINE_HANDLERS` + `_build_file_name()` (ver gotcha abaixo).
 5. **Sobe** via `upload_report_file()`.
-6. **Confere as colunas** do arquivo já processado via `check_file()` — só se a rotina tiver baseline em `config/sentinel/<ROUTINE>.yml` (`has_baseline`). Roda depois do upload para a linha do sentinel fechar o bloco do arquivo no log; escreve uma linha no log do domínio e nunca levanta erro (ver `column_sentinel.py` abaixo).
+6. **Confere as colunas** do arquivo já processado via `check_file()` — só se a rotina tiver baseline em `config/sentinel/<ROUTINE>.yml` (`has_baseline`), ou uma por faixa de cabeçalho quando listada em `SENTINEL_BASELINES` (916: `916-MANIFESTO` e `916-CTRC`, as duas no mesmo arquivo). Roda depois do upload para a linha do sentinel fechar o bloco do arquivo no log; escreve uma linha no log do domínio e nunca levanta erro (ver `column_sentinel.py` abaixo).
 7. **Sempre fecha a página** no `finally`, mesmo em erro.
 
 ### ⚠️ Gotcha: registrar uma rotina nova na 156
 
-`_build_file_name()` decide o nome do arquivo por um dispatch de `if routine == "XXX"`, e `ROUTINE_HANDLERS` decide qual função de pós-processamento rodar. **Os dois são independentes** — uma rotina não registrada em nenhum dos dois cai silenciosamente no fallback (`_handle_default` + branch "Default" de `_build_file_name`), que gera um nome **sem unidade nem data codificada**. Rotinas atualmente registradas em `ROUTINE_HANDLERS` (em **ordem crescente**, com `_handle_default` por último — mantenha assim): `019`, `076`, `306`, `324`, `441`, `455ABH`, `455CGK`, `455F`, `467`, `477`, `493`, `930`. Só `324`, `441`, `455ABH` e `455CGK` têm pós-processamento; as demais só gravam o arquivo com o nome certo.
+`_build_file_name()` decide o nome do arquivo por um dispatch de `if routine == "XXX"`, e `ROUTINE_HANDLERS` decide qual função de pós-processamento rodar. **Os dois são independentes** — uma rotina não registrada em nenhum dos dois cai silenciosamente no fallback (`_handle_default` + branch "Default" de `_build_file_name`), que gera um nome **sem unidade nem data codificada**. Rotinas atualmente registradas em `ROUTINE_HANDLERS` (em **ordem crescente**, com `_handle_default` por último — mantenha assim): `019`, `076`, `306`, `324`, `441`, `455ABH`, `455CGK`, `455F`, `467`, `477`, `493`, `916`, `930`. Só `324`, `441`, `455ABH` e `455CGK` têm pós-processamento; as demais só gravam o arquivo com o nome certo.
 
 Ao adicionar uma rotina nova que passa pela 156:
 1. Adicione uma função `_handle_XXX` (copie `_handle_076` se for por unidade).
 2. Adicione um branch em `_build_file_name()` se o nome do arquivo dessa rotina precisar de algo além do padrão `{ano}-{mês}-{domain}-{routine}.{suffix}`.
 3. Registre em `ROUTINE_HANDLERS`, no lugar certo da ordem crescente (a função `_handle_XXX` também).
-4. Se a rotina tiver baseline em `config/sentinel/`, nada mais a fazer: o `process_156_report` já roda o sentinel para ela.
+4. Se a rotina tiver baseline em `config/sentinel/`, nada mais a fazer: o `process_156_report` já roda o sentinel para ela. Se o arquivo tiver mais de uma faixa de cabeçalho (como a 916), crie uma baseline por faixa e liste os nomes em `SENTINEL_BASELINES`, logo abaixo de `ROUTINE_HANDLERS`.
 
 (Mesmo gotcha já descrito no CLAUDE.md — repetido aqui porque é o erro mais fácil de esquecer ao criar uma rotina nova.)
 
@@ -87,11 +87,12 @@ Compara o cabeçalho de um arquivo baixado com a baseline fixa da rotina (`confi
 | --- | --- | --- |
 | `check_file(file_path, routine, domain)` | `def check_file(file_path: Path, routine: str, domain: str) -> SentinelStatus` (síncrona) | Ponto de entrada. Lê só o cabeçalho, compara com a baseline e loga o resultado. Não levanta exceção. |
 | `has_baseline(routine)` | `def has_baseline(routine: str) -> bool` | `True` se existe `config/sentinel/<routine>.yml`. Rotina sem baseline não é conferida (sem erro, sem linha no log). |
+| `label_separator` (YAML) | opcional | Células do cabeçalho no formato `rótulo: valor` são comparadas só pelo rótulo (totais da 916, `qtde_ctrc:  2077`). |
 | `load_baseline(routine)` | `def load_baseline(routine: str) -> Optional[ColumnBaseline]` | Carrega e valida o YAML com Pydantic (numeração 1..N sem buracos, sem nome vazio/duplicado). Em cache por processo. |
 | `compare_columns(expected, actual)` | `def compare_columns(expected: List[str], actual: List[str]) -> ColumnReport` | Classifica as diferenças. Uma coluna inserida vira um único `ADDED` (as seguintes não viram `MOVED`). |
 
 **Onde é chamada:**
-- `downloads.py → process_156_report`, depois do processamento e logo após o upload (a linha do sentinel fecha o bloco do arquivo no log) — cobre toda rotina da tela 156 que tenha baseline (019, 076, 306, 324, 441, 455ABH, 455CGK, 455F, 467, 477, 493, 930).
+- `downloads.py → process_156_report`, depois do processamento e logo após o upload (a linha do sentinel fecha o bloco do arquivo no log) — cobre toda rotina da tela 156 que tenha baseline (019, 076, 306, 324, 441, 455ABH, 455CGK, 455F, 467, 477, 493, 916, 930).
 - Direto nos bots, nos caminhos de download sem a 156: `bot_002.py`, `bot_019.py`, `bot_036.py`, `bot_073.py` (um check por csv do zip: `073-FROTA` / `073-TERCEIROS`), `bot_076.py`, `bot_081.py`, `bot_103.py`, `bot_119.py`, `bot_200.py`, `bot_306.py`, `bot_322.py`, `bot_411.py`, `bot_435.py`, `bot_441.py`, `bot_442.py`, `bot_452.py`, `bot_458.py`, `bot_477.py`.
 
 **Formatos:** lê CSV (separador/encoding da baseline) e `.xlsx` (primeira aba — usado pela 119 e pela 324, cujo processamento gera Excel, e pela 458, que monta o Excel a partir da tabela raspada).

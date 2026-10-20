@@ -44,6 +44,7 @@ ROUTINE_MAP: Dict[str, str] = {
     # --- Individual bots (manual runs / tests) ---
     "458":      "app.routines.bot_458.main",
     "930":      "app.routines.bot_930.main",
+    "916":      "app.routines.bot_916.main",
     "571":      "app.routines.bot_571.main",
     "493":      "app.routines.bot_493.main",
     "477":      "app.routines.bot_477.main",

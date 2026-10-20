@@ -205,6 +205,33 @@ class Dates:
             (current_month_start.strftime('%d%m%y'), current_month_end.strftime('%d%m%y'))
         ]
 
+    def previous_and_current_month_to_yesterday_ranges(self) -> List[Tuple[str, str]]:
+        """
+        Returns the full previous month and the current month from the 1st
+        up to yesterday (today is never included). Dates are in 'ddmmyy'
+        format.
+
+        On the 1st of the month the current month has no closed day yet, so
+        only the previous month is returned — a range ending before it starts
+        would be invalid.
+
+        Example: if today is 15/03/2025, returns
+        [('010225', '280225'), ('010325', '140325')];
+        if today is 01/03/2025, returns [('010225', '280225')].
+        """
+        today = date.today()
+        current_month_start = today.replace(day=1)
+        last_month_end = current_month_start - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        yesterday = today - timedelta(days=1)
+
+        ranges: List[Tuple[str, str]] = [
+            (last_month_start.strftime('%d%m%y'), last_month_end.strftime('%d%m%y'))
+        ]
+        if yesterday >= current_month_start:
+            ranges.append((current_month_start.strftime('%d%m%y'), yesterday.strftime('%d%m%y')))
+        return ranges
+
     def last_three_months_ranges(self) -> List[Tuple[str, str]]:
         
         """
